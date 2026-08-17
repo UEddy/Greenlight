@@ -1,0 +1,56 @@
+{
+  "generated_at": "2026-08-17T20:21:16Z",
+  "generated_by": "scripts/fetch-sources.py",
+  "note": "Raw files live in data/raw/, which is gitignored and never read at runtime. Rebuild the curated JSON with python scripts/build-dataset.py.",
+  "sources": [
+    {
+      "id": "uk_home_office_vis_d02",
+      "title": "UK Home Office, entry clearance visa applications and outcomes, table Vis_D02",
+      "description": "Outcomes of UK entry clearance visa applications by nationality, visa type and outcome, quarterly from 2005.",
+      "destination": "United Kingdom",
+      "axis": "nationality",
+      "format": "xlsx",
+      "download_url": "https://assets.publishing.service.gov.uk/media/6a1d5a9f916cd732dcdaad5c/entry-clearance-visa-outcomes-datasets-mar-2026.xlsx",
+      "landing_url": "https://www.gov.uk/government/statistical-data-sets/immigration-system-statistics-data-tables",
+      "retrieved_at": "2026-08-17",
+      "publication": "Immigration system statistics, year ending March 2026. Published 21 May 2026, data tables updated 10 June 2026, next update 27 August 2026.",
+      "source_year": 2025,
+      "year_basis": "calendar_year",
+      "methodology": "UK Home Office table Vis_D02, outcomes of entry clearance visa applications. Counts are decisions taken in the period, not unique applicants, so one person can appear more than once across quarters. The refusal rate published here is refused divided by issued plus refused. Withdrawn and lapsed cases are reported separately in outcome_counts and are excluded from the denominator. This is a per decision rate and is not comparable to the US per person adjusted rate without saying so.",
+      "url_stability_note": "The download path contains a hashed media segment that changes every time the Home Office republishes. If the download returns 404, open landing_url, find the current Vis_D02 entry clearance visa outcomes file, and update download_url in scripts/sources.py.",
+      "raw_path": "data/raw/uk-entry-clearance-visa-outcomes-mar-2026.xlsx",
+      "bytes": 32304430,
+      "sha256": "ea99f6cebce5e96bd492359b0e5576c674ba5373871bca9a42906a2207e6b8bc",
+      "supporting_files": []
+    },
+    {
+      "id": "us_state_b_visa_adjusted_refusal_rates",
+      "title": "US Department of State, adjusted refusal rates for B visas by nationality",
+      "description": "Visa Waiver Program adjusted refusal rate for B visitor visas, worldwide, one rate per nationality per fiscal year.",
+      "destination": "United States",
+      "axis": "nationality",
+      "format": "pdf",
+      "download_url": "https://travel.state.gov/content/dam/visas/Statistics/Non-Immigrant-Statistics/RefusalRates/FY25.pdf",
+      "landing_url": "https://travel.state.gov/content/travel/en/legal/visa-law0/visa-statistics/nonimmigrant-visa-statistics/nonimmigrant-b-visa-adjusted-refusal-rates-by-nationality.html",
+      "retrieved_at": "2026-08-17",
+      "publication": "Fiscal year 2025 table. US fiscal year 2025 ran from 1 October 2024 to 30 September 2025. FY26.pdf returns 404 and is not expected until after 30 September 2026.",
+      "source_year": 2025,
+      "year_basis": "us_fiscal_year",
+      "methodology": "US Department of State Visa Waiver Program adjusted refusal rate for B visas, worldwide, by nationality. The Department identifies multiple applications from a unique applicant and omits all but the last action, so an applicant is counted only once each fiscal year and is assigned the status in which the year ended. Someone refused in April and issued in July counts only as an issuance. The published formula is refusals minus overcomes, divided by issuances plus refusals minus overcomes. The Department publishes the rate only, so numerator and denominator are null for this source. This is a per person end of year rate and is not comparable to the UK per decision rate without saying so.",
+      "url_stability_note": "Stable path pattern. Swap FY25 for FY26 in download_url once the next fiscal year is published. Requires a browser User-Agent, otherwise the host returns 403 with an HTML body.",
+      "raw_path": "data/raw/us-b-visa-adjusted-refusal-rates-fy25.pdf",
+      "bytes": 90797,
+      "sha256": "efe0365f062cf6c45d6b0748465cb53eb146fced12491ccc0f65b231808765f1",
+      "supporting_files": [
+        {
+          "role": "methodology",
+          "description": "Department of State note explaining how the adjusted refusal rate is calculated. Source of the methodology string recorded on every US record.",
+          "download_url": "https://travel.state.gov/content/dam/visas/Statistics/Non-Immigrant-Statistics/refusalratelanguage.pdf",
+          "raw_path": "data/raw/us-adjusted-refusal-rate-methodology.pdf",
+          "bytes": 94024,
+          "sha256": "306e3378c8c1cb64e468210805514c7e1c6624056036a9f79ff2fd05bea5debf"
+        }
+      ]
+    }
+  ]
+}

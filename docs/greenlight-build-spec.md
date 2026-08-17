@@ -71,10 +71,10 @@ Restaurant booking is a whole integration for one line in a demo video. It is cu
 
 The odds engine is the differentiator and the accuracy risk. Ground it in published data or do not ship it.
 
-Create `data/` with curated JSON. Do not attempt global coverage. Pick roughly 12 passports and 8 destinations that matter to the crypto event circuit:
+Create `data/` with curated JSON. Do not attempt global coverage. Pick roughly 12 passports that matter to the crypto event circuit, and take the destinations that publish usable data:
 
 - Passports: Nigeria, Ghana, Kenya, India, Pakistan, Bangladesh, Vietnam, Philippines, Egypt, Morocco, Indonesia, Nepal
-- Destinations: Schengen area, United Kingdom, United States, United Arab Emirates, Singapore, Turkey, Thailand, South Korea
+- Destinations: United Kingdom, United States, Schengen area. That is the whole list, and it is not a scoping choice, it is what exists. The UAE, Singapore, Turkey, Thailand and South Korea do not publish visa refusal statistics by nationality in any usable form. Do not stub them, do not estimate them, and do not let the country picker offer them as if coverage were coming. Show them as unsupported with a one line reason.
 
 Source datasets, in build order:
 
