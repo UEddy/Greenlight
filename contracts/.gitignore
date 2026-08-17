@@ -1,0 +1,5 @@
+# Foundry build artifacts. The leading slash anchors each pattern to this
+# directory, which is what makes /out mean contracts/out.
+/out
+/cache
+/broadcast
