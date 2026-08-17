@@ -257,7 +257,7 @@ The three verdict colors are a literal traffic light, which is what the product 
 ## 11. Things that will go wrong
 
 - **Chain params.** Verify from docs, not memory. Get testnet OKB from the faucet on day 1, not day 4.
-- **Dataset scope creep.** You will want to cover more countries. Do not. Twelve by eight is a demo, exhaustive coverage is a company.
+- **Dataset scope creep.** You will want to add destinations. The constraint is not restraint, it is that most countries publish nothing. Adding a destination means finding a published, per nationality, per outcome dataset first. If there is no such file, there is no destination. Twelve nationalities by three destinations is a complete product.
 - **The verifier role.** A judge will ask who confirms the visa was granted. Have the honest answer ready: today it is a trusted signer, the production path is a consulate issued attestation or a document verification provider. Do not oversell.
 - **Booking APIs.** Sandbox only. Say it on screen. Claiming live bookings you cannot make is how you lose credibility in the Q and A.
 - **Time.** You have the GOAT port in flight and Arc Demo Day on the 20th. If day 2 ends without a working verdict card, cut flights and hotels entirely and ship the odds engine plus escrow. That is still a complete product.
