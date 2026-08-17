@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {TravelEscrow} from "../src/TravelEscrow.sol";
-import {MockUSDC} from "./mocks/MockUSDC.sol";
+import {MockUSDC} from "../src/MockUSDC.sol";
 import {MockNoReturnToken} from "./mocks/MockNoReturnToken.sol";
 import {ReentrantToken} from "./mocks/ReentrantToken.sol";
 import {ReentrantSponsor} from "./mocks/ReentrantSponsor.sol";

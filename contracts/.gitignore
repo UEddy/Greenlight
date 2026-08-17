@@ -3,3 +3,8 @@
 /out
 /cache
 /broadcast
+
+# forge flatten output. Not needed for verification, forge verify-contract
+# submits standard JSON input with imports resolved. Kept ignored so a
+# one off flatten for the explorer UI fallback never gets committed.
+flat/
