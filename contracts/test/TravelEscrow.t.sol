@@ -285,19 +285,183 @@ contract TravelEscrowTest is Test {
         vm.stopPrank();
     }
 
-    function test_grantedTripDoesNotExpire() public {
+    function test_grantedTripSettlesToLeftoverNotExpired() public {
         _fund(traveler, 1_000e6);
         _attest(true);
 
-        vm.warp(travelBy + 365 days);
-
+        // Before the travel date a granted trip is not refundable at all.
         assertFalse(escrow.isRefundable(TRIP));
         assertEq(uint8(escrow.statusOf(TRIP)), uint8(TravelEscrow.Status.VisaGranted));
 
-        // Booking can still be paid after the travel date once a visa exists.
+        vm.warp(travelBy + 365 days);
+
+        // After it, the trip settles to Leftover rather than Expired, so the
+        // traveler does not get a full refund of money they had a visa for.
+        assertEq(uint8(escrow.statusOf(TRIP)), uint8(TravelEscrow.Status.Leftover));
+        assertTrue(escrow.isRefundable(TRIP));
+
+        // Releases close at travelBy. The remainder belongs to contributors
+        // now and the traveler must not be able to race them for it.
+        vm.prank(traveler);
+        vm.expectRevert(TravelEscrow.NotReleasable.selector);
+        escrow.releaseForBooking(TRIP, airline, 1_000e6);
+        assertEq(usdc.balanceOf(airline), 0);
+    }
+
+    // -----------------------------------------------------------------
+    // 3b. leftover path, granted trip with unspent remainder
+    // -----------------------------------------------------------------
+
+    function test_leftover_sharedProRata() public {
+        // 1500 traveler, 500 sponsorA, 1000 sponsorB. Total 3000.
+        _fund(traveler, 1_500e6);
+        _fund(sponsorA, 500e6);
+        _fund(sponsorB, 1_000e6);
+
+        _attest(true);
+        vm.prank(traveler);
+        escrow.releaseForBooking(TRIP, airline, 1_200e6);
+
+        vm.warp(travelBy);
+
+        // Remainder is 1800 of 3000, so everyone gets 60 percent back.
+        assertEq(uint8(escrow.statusOf(TRIP)), uint8(TravelEscrow.Status.Leftover));
+        assertEq(escrow.claimableOf(TRIP, traveler), 900e6);
+        assertEq(escrow.claimableOf(TRIP, sponsorA), 300e6);
+        assertEq(escrow.claimableOf(TRIP, sponsorB), 600e6);
+
+        uint256 travelerBefore = usdc.balanceOf(traveler);
+        uint256 sponsorABefore = usdc.balanceOf(sponsorA);
+        uint256 sponsorBBefore = usdc.balanceOf(sponsorB);
+
+        vm.prank(traveler);
+        escrow.claimRefund(TRIP);
+        vm.prank(sponsorA);
+        escrow.claimRefund(TRIP);
+        vm.prank(sponsorB);
+        escrow.claimRefund(TRIP);
+
+        assertEq(usdc.balanceOf(traveler) - travelerBefore, 900e6);
+        assertEq(usdc.balanceOf(sponsorA) - sponsorABefore, 300e6);
+        assertEq(usdc.balanceOf(sponsorB) - sponsorBBefore, 600e6);
+
+        assertEq(usdc.balanceOf(airline), 1_200e6);
+        assertEq(usdc.balanceOf(address(escrow)), 0);
+    }
+
+    /// @notice The reason the pool is snapshotted. If shares were computed
+    /// against a live balance, the first claimer would shrink the pool and
+    /// every later claimant would be short changed.
+    function test_leftover_poolIsFrozenSoClaimOrderDoesNotMatter() public {
+        _fund(traveler, 1_000e6);
+        _fund(sponsorA, 1_000e6);
+        _fund(sponsorB, 1_000e6);
+
+        _attest(true);
+        vm.prank(traveler);
+        escrow.releaseForBooking(TRIP, airline, 1_500e6);
+
+        vm.warp(travelBy);
+
+        // Equal deposits, so equal shares, whatever order they arrive in.
+        vm.prank(sponsorB);
+        escrow.claimRefund(TRIP);
+        assertEq(escrow.claimableOf(TRIP, traveler), 500e6, "pool moved under the next claimant");
+        assertEq(escrow.claimableOf(TRIP, sponsorA), 500e6, "pool moved under the next claimant");
+
+        vm.prank(traveler);
+        escrow.claimRefund(TRIP);
+        vm.prank(sponsorA);
+        escrow.claimRefund(TRIP);
+
+        assertEq(usdc.balanceOf(sponsorB), 10_000e6 - 1_000e6 + 500e6);
+        assertEq(usdc.balanceOf(sponsorA), 10_000e6 - 1_000e6 + 500e6);
+    }
+
+    function test_leftover_fullySpentTripPaysNothing() public {
+        _fund(sponsorA, 1_000e6);
+        _attest(true);
+
         vm.prank(traveler);
         escrow.releaseForBooking(TRIP, airline, 1_000e6);
-        assertEq(usdc.balanceOf(airline), 1_000e6);
+
+        vm.warp(travelBy);
+        assertEq(escrow.claimableOf(TRIP, sponsorA), 0);
+
+        vm.prank(sponsorA);
+        vm.expectRevert(TravelEscrow.NothingToClaim.selector);
+        escrow.claimRefund(TRIP);
+    }
+
+    function test_leftover_doubleClaimReverts() public {
+        _fund(sponsorA, 1_000e6);
+        _fund(sponsorB, 1_000e6);
+        _attest(true);
+
+        vm.prank(traveler);
+        escrow.releaseForBooking(TRIP, airline, 400e6);
+
+        vm.warp(travelBy);
+
+        vm.prank(sponsorA);
+        escrow.claimRefund(TRIP);
+
+        vm.prank(sponsorA);
+        vm.expectRevert(TravelEscrow.NothingToClaim.selector);
+        escrow.claimRefund(TRIP);
+
+        // The other contributor is untouched by the failed second attempt.
+        assertEq(escrow.claimableOf(TRIP, sponsorB), 800e6);
+    }
+
+    function test_leftover_completedTripStillReleasesRemainder() public {
+        _fund(sponsorA, 1_000e6);
+        _attest(true);
+
+        vm.startPrank(traveler);
+        escrow.releaseForBooking(TRIP, airline, 300e6);
+        // A traveler marking the trip complete must not be able to strand the
+        // remainder, so Completed settles to Leftover like the others.
+        escrow.complete(TRIP);
+        vm.stopPrank();
+
+        vm.warp(travelBy);
+        assertEq(uint8(escrow.statusOf(TRIP)), uint8(TravelEscrow.Status.Leftover));
+
+        vm.prank(sponsorA);
+        escrow.claimRefund(TRIP);
+        assertEq(usdc.balanceOf(sponsorA), 10_000e6 - 300e6);
+    }
+
+    function test_leftover_permissionlessExpireOpensPool() public {
+        _fund(sponsorA, 1_000e6);
+        _attest(true);
+        vm.prank(traveler);
+        escrow.releaseForBooking(TRIP, airline, 250e6);
+
+        vm.warp(travelBy + 1);
+
+        vm.prank(stranger);
+        escrow.expire(TRIP);
+
+        TravelEscrow.Trip memory trip = escrow.getTrip(TRIP);
+        assertEq(uint8(trip.status), uint8(TravelEscrow.Status.Leftover));
+        assertEq(trip.leftoverPool, 750e6);
+    }
+
+    function test_leftover_deniedTripStillRefundsInFull() public {
+        _fund(sponsorA, 1_000e6);
+        _attest(false);
+
+        // A denial before the travel date is a full refund, not a leftover
+        // share, even if the travel date later passes.
+        vm.warp(travelBy + 1);
+        assertEq(uint8(escrow.statusOf(TRIP)), uint8(TravelEscrow.Status.VisaDenied));
+        assertEq(escrow.claimableOf(TRIP, sponsorA), 1_000e6);
+
+        vm.prank(sponsorA);
+        escrow.claimRefund(TRIP);
+        assertEq(usdc.balanceOf(sponsorA), 10_000e6);
     }
 
     // -----------------------------------------------------------------
@@ -540,8 +704,101 @@ contract TravelEscrowTest is Test {
         }
     }
 
+    /// @notice The whole contract in one property: across every terminal path,
+    /// what the escrow pays out for bookings plus what it pays back to
+    /// contributors can never exceed what was put in.
+    ///
+    /// Path 0 denial, 1 abort, 2 expiry with no outcome, 3 granted with a
+    /// release then leftover. Every contributor tries to claim twice.
+    function testFuzz_releasedPlusClaimedNeverExceedsDeposited(
+        uint96 amountA,
+        uint96 amountB,
+        uint96 amountC,
+        uint96 releaseAmount,
+        uint8 pathSelector,
+        uint8 claimOrder
+    ) public {
+        amountA = uint96(bound(amountA, 1, 1_000_000e6));
+        amountB = uint96(bound(amountB, 1, 1_000_000e6));
+        amountC = uint96(bound(amountC, 1, 1_000_000e6));
+        uint8 path = uint8(bound(pathSelector, 0, 3));
+
+        bytes32 tripId = keccak256(abi.encode("fuzz-all", amountA, amountB, amountC, releaseAmount, path));
+        vm.prank(traveler);
+        escrow.createTrip(tripId, address(usdc), TARGET, travelBy);
+
+        address[3] memory who = [traveler, sponsorA, sponsorB];
+        uint96[3] memory amounts = [amountA, amountB, amountC];
+
+        uint256 totalDeposited;
+        for (uint256 i = 0; i < 3; i++) {
+            usdc.mint(who[i], amounts[i]);
+            vm.startPrank(who[i]);
+            usdc.approve(address(escrow), amounts[i]);
+            if (who[i] == traveler) {
+                escrow.fund(tripId, amounts[i]);
+            } else {
+                escrow.sponsor(tripId, amounts[i]);
+            }
+            vm.stopPrank();
+            totalDeposited += amounts[i];
+        }
+
+        uint256 totalReleased;
+        if (path == 0) {
+            vm.prank(verifier);
+            escrow.attestVisaOutcome(tripId, false);
+        } else if (path == 1) {
+            vm.prank(traveler);
+            escrow.abort(tripId);
+        } else if (path == 2) {
+            vm.warp(travelBy);
+        } else {
+            vm.prank(verifier);
+            escrow.attestVisaOutcome(tripId, true);
+            totalReleased = bound(releaseAmount, 1, totalDeposited);
+            vm.prank(traveler);
+            escrow.releaseForBooking(tripId, airline, totalReleased);
+            vm.warp(travelBy);
+        }
+
+        uint256 totalClaimed;
+        for (uint256 round = 0; round < 2; round++) {
+            for (uint256 i = 0; i < 3; i++) {
+                address claimant = who[(i + claimOrder) % 3];
+                uint256 before = usdc.balanceOf(claimant);
+                vm.prank(claimant);
+                try escrow.claimRefund(tripId) {
+                    totalClaimed += usdc.balanceOf(claimant) - before;
+                } catch {
+                    // Second attempts, and zero value shares, must fail.
+                }
+            }
+        }
+
+        // The invariant. Not equality, because integer division on the
+        // leftover path can leave a few units of dust behind, at most one per
+        // contributor.
+        assertLe(totalReleased + totalClaimed, totalDeposited, "paid out more than was put in");
+
+        // The escrow must never owe more than it holds either.
+        assertEq(usdc.balanceOf(address(escrow)), totalDeposited - totalReleased - totalClaimed);
+
+        // On every path except leftover the accounting is exact.
+        if (path != 3) {
+            assertEq(totalReleased + totalClaimed, totalDeposited, "non leftover paths must settle exactly");
+        } else {
+            uint256 dust = totalDeposited - totalReleased - totalClaimed;
+            assertLe(dust, 3, "leftover dust must be bounded by one unit per contributor");
+        }
+
+        for (uint256 i = 0; i < 3; i++) {
+            assertEq(escrow.claimableOf(tripId, who[i]), 0, "nothing claimable after everyone claimed");
+        }
+    }
+
     /// @notice Same invariant on the granted branch: once money is released
-    /// for booking, nobody can claim any of it back.
+    /// for booking, nobody can claim any of it back before the travel date.
     function testFuzz_grantedTripNeverRefunds(uint96 deposit, uint96 release) public {
         deposit = uint96(bound(deposit, 1, 1_000_000e6));
         release = uint96(bound(release, 1, deposit));

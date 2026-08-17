@@ -126,6 +126,8 @@ function refund(bytes32 tripId) external;
 function abort(bytes32 tripId) external;                          // traveler, before VisaGranted
 ```
 
+`travelBy` is a settlement deadline, not a departure date. It is the moment the escrow stops paying out and starts paying back: releases close and contributors can claim their share of whatever is left. So it belongs after the last payment the trip will make, not on the day the traveler flies, and hotels commonly settle at checkout rather than at booking. The frontend defaults it to the return date plus one week and never labels it as the travel date.
+
 Requirements:
 
 - Sponsors are recorded and refunded pro rata on denial. This is the feature that makes the sponsorship story real, so get the accounting right.

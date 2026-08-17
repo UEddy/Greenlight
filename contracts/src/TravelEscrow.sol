@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title TravelEscrow
 /// @notice Holds stablecoin for one trip until a visa outcome is known.
@@ -34,9 +35,21 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 ///    hundred percent of what was put in, so each contributor's pro rata share
 ///    is exactly their own deposit. There is no partial release to reconcile.
 ///
-/// Expiry closes the obvious hole in that design. If travelBy passes with no
-/// outcome attested, the trip becomes refundable, so an absent or failed
-/// verifier cannot strand anyone's money.
+/// travelBy is a settlement deadline, not a departure date. It is the moment
+/// the escrow stops paying out and starts paying back, so it belongs after the
+/// last payment the trip will make, not on the day the traveler flies.
+///
+/// Two things happen when that deadline passes, and which one depends on
+/// whether a visa was ever attested.
+///
+/// With no outcome, the trip Expires and every contributor takes their full
+/// deposit back, so an absent or failed verifier cannot strand anyone's money.
+///
+/// With a grant, the trip moves to Leftover and contributors share whatever
+/// was never spent, in proportion to what they put in. Releases close at the
+/// same moment, otherwise the traveler could race contributors for the
+/// remainder. The pool is snapshotted on entry to Leftover so that claims do
+/// not shrink the denominator under each other.
 ///
 /// The verifier is a single trusted signer, fixed at deploy. That is honest
 /// for a demo and not sufficient for production, which needs a consulate
@@ -45,9 +58,12 @@ contract TravelEscrow is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     /// @notice Lifecycle of a trip.
-    /// @dev Created and Funded are the two pre outcome states. VisaDenied,
-    /// Aborted and Expired are the three refundable terminal states. Booked
-    /// and Completed follow VisaGranted and are never refundable.
+    /// @dev Created and Funded are the pre outcome states. Once travelBy
+    /// passes, a trip lands in one of two settled states depending on which
+    /// side of the visa decision it was on:
+    ///   pre outcome  -> Expired,  every contributor takes their full deposit
+    ///   post outcome -> Leftover, contributors share whatever was not spent
+    /// VisaDenied and Aborted are full refund states reached before travelBy.
     enum Status {
         None, // trip does not exist
         Created, // created, nothing contributed yet
@@ -57,11 +73,13 @@ contract TravelEscrow is ReentrancyGuard {
         Booked,
         Completed,
         Aborted,
-        Expired
+        Expired, // travel date passed with no outcome, full refunds
+        Leftover // travel date passed after a grant, unspent remainder shared
     }
 
     struct Trip {
         address traveler;
+        /// @dev Settlement deadline, not a departure date. See createTrip.
         uint64 travelBy;
         Status status;
         address token;
@@ -69,6 +87,12 @@ contract TravelEscrow is ReentrancyGuard {
         uint256 totalContributed;
         uint256 totalReleased;
         uint256 totalRefunded;
+        /// @dev Unspent remainder frozen at the moment the trip entered
+        /// Leftover. Snapshotting matters: if shares were computed against a
+        /// live balance, each claim would shrink the pool and every later
+        /// claimant would be paid a smaller share of a smaller number. Zero
+        /// outside the Leftover state.
+        uint256 leftoverPool;
     }
 
     /// @notice Address allowed to attest visa outcomes. Fixed at deploy.
@@ -85,6 +109,8 @@ contract TravelEscrow is ReentrancyGuard {
     event VisaAttested(bytes32 indexed tripId, bool granted);
     event Released(bytes32 indexed tripId, address indexed payee, uint256 amount, uint256 totalReleased);
     event Refunded(bytes32 indexed tripId, address indexed contributor, uint256 amount);
+    event LeftoverOpened(bytes32 indexed tripId, uint256 pool, uint256 totalContributed);
+    event LeftoverClaimed(bytes32 indexed tripId, address indexed contributor, uint256 amount);
     event TripAborted(bytes32 indexed tripId);
     event TripExpired(bytes32 indexed tripId);
     event TripCompleted(bytes32 indexed tripId);
@@ -122,8 +148,13 @@ contract TravelEscrow is ReentrancyGuard {
     /// @notice Open a trip. The caller becomes the traveler.
     /// @param target Funding goal in raw token units. Informational only, this
     /// contract does not enforce it, so a trip can be under or over funded.
-    /// @param travelBy Unix seconds. Once reached with no outcome attested,
-    /// the trip becomes refundable.
+    /// @param travelBy Settlement deadline in Unix seconds, not a departure
+    /// date. This is the moment the escrow stops paying out and starts paying
+    /// back: releases close, and contributors can claim. It therefore has to
+    /// sit after the last payment the trip will ever make, and hotels commonly
+    /// settle at checkout rather than at booking. Set it to the return date
+    /// plus roughly a week. The frontend should prefill that and should not
+    /// present this field as the date of travel.
     function createTrip(bytes32 tripId, address stablecoin, uint256 target, uint64 travelBy) external {
         if (_trips[tripId].status != Status.None) revert TripAlreadyExists();
         if (stablecoin == address(0)) revert ZeroAddress();
@@ -186,7 +217,7 @@ contract TravelEscrow is ReentrancyGuard {
     /// contributors, and a late attestation must not be able to take it back.
     function attestVisaOutcome(bytes32 tripId, bool granted) external onlyVerifier {
         Trip storage trip = _load(tripId);
-        _expireIfDue(tripId, trip);
+        _settleIfDue(tripId, trip);
         if (trip.status != Status.Created && trip.status != Status.Funded) revert NotAwaitingOutcome();
 
         trip.status = granted ? Status.VisaGranted : Status.VisaDenied;
@@ -203,24 +234,43 @@ contract TravelEscrow is ReentrancyGuard {
         emit TripAborted(tripId);
     }
 
-    /// @notice Move a trip past its travel date into the refundable Expired
-    /// state. Permissionless, because the point of expiry is that it works
-    /// when the verifier does not.
+    /// @notice Move a trip past its travel date into whichever settled state
+    /// applies, Expired or Leftover. Permissionless, because the point of
+    /// settlement is that it works when nobody else acts.
     /// @dev claimRefund applies the same transition on its own, so nobody has
     /// to call this first. It exists so the status readable on chain matches
     /// reality without waiting for the first claimer.
     function expire(bytes32 tripId) external {
         Trip storage trip = _load(tripId);
-        _expireIfDue(tripId, trip);
-        if (trip.status != Status.Expired) revert NotRefundable();
+        _settleIfDue(tripId, trip);
+        if (trip.status != Status.Expired && trip.status != Status.Leftover) revert NotRefundable();
     }
 
-    /// @dev Lazy expiry. Solidity cannot transition on its own, so the check
-    /// runs at the head of every path that cares.
-    function _expireIfDue(bytes32 tripId, Trip storage trip) private {
-        if ((trip.status == Status.Created || trip.status == Status.Funded) && block.timestamp >= trip.travelBy) {
+    /// @dev Lazy settlement. Solidity cannot transition on its own, so the
+    /// check runs at the head of every path that cares.
+    ///
+    /// Which state a trip settles into depends on whether a visa was granted
+    /// before the travel date passed. With no outcome, contributors get
+    /// everything back. With a grant, the traveler had their chance to spend
+    /// it and only the unspent remainder goes back.
+    function _settleIfDue(bytes32 tripId, Trip storage trip) private {
+        if (block.timestamp < trip.travelBy) return;
+
+        Status status = trip.status;
+        if (status == Status.Created || status == Status.Funded) {
             trip.status = Status.Expired;
             emit TripExpired(tripId);
+            return;
+        }
+
+        // Completed is included deliberately. It is only a marker, and leaving
+        // it out would let a traveler strand every contributor's remainder by
+        // calling complete() before the travel date.
+        if (status == Status.VisaGranted || status == Status.Booked || status == Status.Completed) {
+            uint256 pool = trip.totalContributed - trip.totalReleased;
+            trip.leftoverPool = pool;
+            trip.status = Status.Leftover;
+            emit LeftoverOpened(tripId, pool, trip.totalContributed);
         }
     }
 
@@ -230,9 +280,13 @@ contract TravelEscrow is ReentrancyGuard {
 
     /// @notice Traveler pays a booking out of the escrow after a visa is
     /// granted. May be called more than once, for a flight and then a hotel.
+    /// @dev Closes at travelBy. Past that point the unspent remainder belongs
+    /// to the contributors, and the traveler must not be able to race them for
+    /// it by releasing to an address they control.
     function releaseForBooking(bytes32 tripId, address payee, uint256 amount) external nonReentrant {
         Trip storage trip = _load(tripId);
         if (msg.sender != trip.traveler) revert NotTraveler();
+        _settleIfDue(tripId, trip);
         if (trip.status != Status.VisaGranted && trip.status != Status.Booked) revert NotReleasable();
         if (payee == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
@@ -250,6 +304,7 @@ contract TravelEscrow is ReentrancyGuard {
     function complete(bytes32 tripId) external {
         Trip storage trip = _load(tripId);
         if (msg.sender != trip.traveler) revert NotTraveler();
+        _settleIfDue(tripId, trip);
         if (trip.status != Status.Booked) revert NotBooked();
 
         trip.status = Status.Completed;
@@ -260,32 +315,75 @@ contract TravelEscrow is ReentrancyGuard {
     // Refunds
     // ---------------------------------------------------------------------
 
-    /// @notice Withdraw your own stake from a refundable trip.
+    /// @notice Withdraw whatever this trip owes you. One entry point for both
+    /// refund paths, because from a contributor's side it is the same action
+    /// and the same claim ticket.
+    ///
+    /// Full refund, from VisaDenied, Aborted or Expired: no money can leave
+    /// the escrow before a visa is granted, so a trip in one of these states
+    /// still holds every contributed unit and each contributor takes back
+    /// their whole deposit. That is what pro rata reduces to here.
+    ///
+    /// Pro rata leftover, from Leftover: the traveler got a visa and spent
+    /// some of the escrow, then the travel date passed. Contributors share the
+    /// unspent remainder in proportion to what they put in:
+    ///     share = deposit * leftoverPool / totalContributed
+    ///
     /// @dev Pull based on purpose. The caller's recorded stake is zeroed
     /// before the transfer, so a reentrant token cannot be paid twice, and
-    /// nonReentrant closes the door regardless.
-    ///
-    /// Because no money can leave the escrow before VisaGranted, and a
-    /// refundable trip never reached VisaGranted, the escrow still holds every
-    /// contributed unit. Each contributor's pro rata share is therefore their
-    /// full deposit and no ratio arithmetic is needed.
+    /// nonReentrant closes the door regardless. The stake is zeroed in full
+    /// even on the leftover path, where the payout is smaller: the difference
+    /// is the portion that was already spent on bookings.
     function claimRefund(bytes32 tripId) external nonReentrant {
         Trip storage trip = _load(tripId);
-        _expireIfDue(tripId, trip);
-        if (!_isRefundable(trip.status)) revert NotRefundable();
+        _settleIfDue(tripId, trip);
 
-        uint256 amount = _contributions[tripId][msg.sender];
+        uint256 deposit = _contributions[tripId][msg.sender];
+        uint256 amount;
+        bool isLeftover = trip.status == Status.Leftover;
+
+        if (isLeftover) {
+            if (deposit == 0) revert NothingToClaim();
+            // mulDiv carries the full 512 bit intermediate, so a large
+            // deposit times a large pool cannot overflow before dividing.
+            // It floors, and the floored shares of a set of deposits summing
+            // to totalContributed can never sum above leftoverPool, so the
+            // escrow can never be asked for more than it holds.
+            amount = Math.mulDiv(deposit, trip.leftoverPool, trip.totalContributed);
+        } else {
+            if (!_isRefundable(trip.status)) revert NotRefundable();
+            amount = deposit;
+        }
+
         if (amount == 0) revert NothingToClaim();
 
         _contributions[tripId][msg.sender] = 0;
         trip.totalRefunded += amount;
 
-        emit Refunded(tripId, msg.sender, amount);
+        if (isLeftover) {
+            emit LeftoverClaimed(tripId, msg.sender, amount);
+        } else {
+            emit Refunded(tripId, msg.sender, amount);
+        }
         IERC20(trip.token).safeTransfer(msg.sender, amount);
     }
 
     function _isRefundable(Status status) private pure returns (bool) {
         return status == Status.VisaDenied || status == Status.Aborted || status == Status.Expired;
+    }
+
+    /// @dev Status a trip would hold if settlement were applied right now.
+    /// Every view uses this so a caller reading the contract before anyone has
+    /// poked it still sees the truth.
+    function _effectiveStatus(Trip storage trip) private view returns (Status) {
+        if (block.timestamp < trip.travelBy) return trip.status;
+
+        Status status = trip.status;
+        if (status == Status.Created || status == Status.Funded) return Status.Expired;
+        if (status == Status.VisaGranted || status == Status.Booked || status == Status.Completed) {
+            return Status.Leftover;
+        }
+        return status;
     }
 
     // ---------------------------------------------------------------------
@@ -300,25 +398,42 @@ contract TravelEscrow is ReentrancyGuard {
         return _contributions[tripId][contributor];
     }
 
-    /// @notice Status a trip would have if someone poked it now. Reports
-    /// Expired for a trip whose travel date has passed but whose stored status
-    /// has not been updated yet.
+    /// @notice Status a trip would have if someone poked it now. Reports the
+    /// settled state for a trip whose travel date has passed but whose stored
+    /// status has not been written through yet.
     function statusOf(bytes32 tripId) external view returns (Status) {
-        Trip storage trip = _trips[tripId];
-        if ((trip.status == Status.Created || trip.status == Status.Funded) && block.timestamp >= trip.travelBy) {
-            return Status.Expired;
-        }
-        return trip.status;
+        return _effectiveStatus(_trips[tripId]);
     }
 
-    /// @notice Whether claimRefund would succeed for a contributor right now.
+    /// @notice Whether claimRefund would pay out for someone with a stake in
+    /// this trip right now. Says nothing about any particular caller's
+    /// balance, use claimableOf for that.
     function isRefundable(bytes32 tripId) external view returns (bool) {
         Trip storage trip = _trips[tripId];
         if (trip.status == Status.None) return false;
-        if ((trip.status == Status.Created || trip.status == Status.Funded) && block.timestamp >= trip.travelBy) {
-            return true;
+        Status status = _effectiveStatus(trip);
+        return status == Status.Leftover || _isRefundable(status);
+    }
+
+    /// @notice What claimRefund would pay this contributor right now. Zero
+    /// means the call would revert, either because the trip is not settled,
+    /// because the caller never contributed, or because the pro rata share
+    /// rounds to nothing.
+    function claimableOf(bytes32 tripId, address contributor) external view returns (uint256) {
+        Trip storage trip = _trips[tripId];
+        if (trip.status == Status.None) return 0;
+
+        uint256 deposit = _contributions[tripId][contributor];
+        if (deposit == 0) return 0;
+
+        Status status = _effectiveStatus(trip);
+        if (status == Status.Leftover) {
+            // The pool is only written to storage when settlement happens, so
+            // recompute it here for a trip nobody has poked yet.
+            uint256 pool = trip.status == Status.Leftover ? trip.leftoverPool : trip.totalContributed - trip.totalReleased;
+            return Math.mulDiv(deposit, pool, trip.totalContributed);
         }
-        return _isRefundable(trip.status);
+        return _isRefundable(status) ? deposit : 0;
     }
 
     /// @notice Units still held for this trip, released amounts removed.
