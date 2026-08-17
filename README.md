@@ -185,11 +185,17 @@ Needs Python 3 with `openpyxl` and `pypdf`, plus `curl`. Downloads go through cu
 
 `data/raw/` is gitignored and never read at runtime. Only the curated JSON in `data/processed/` ships.
 
-| Source | Coverage | Axis |
-| --- | --- | --- |
-| UK Home Office, table Vis_D02 | Visitor visas, calendar year 2025, per decision | nationality |
-| US State Department, B visa adjusted refusal rates | Fiscal year 2025, worldwide | nationality |
-| EU Commission Schengen visa statistics | 2025, not yet built | application location |
+| Source | Coverage | Axis | Records |
+| --- | --- | --- | --- |
+| UK Home Office, table Vis_D02 | Visitor visas, calendar year 2025, per decision | nationality | 12 |
+| US State Department, B visa adjusted refusal rates | Fiscal year 2025, worldwide | nationality | 12 |
+| EU Commission Schengen visa statistics | Calendar year 2025, per application | application location | 277 |
+
+**The Schengen file is not a nationality dataset and must never be rendered as one.** It has no applicant nationality column anywhere. A record says what happened at the consulates in a city, not what happens to a given passport, so a Nigerian applying in Dubai appears in the Dubai rows. Its measure is uniform visas **not issued**, which includes withdrawn and inadmissible applications and therefore runs above a true refusal rate.
+
+Schengen records come at three levels, tagged in a `level` field: `consulate` is one issuing state at one city, so France at Lagos stands alone; `consulate_city` aggregates every state at that city; `consulate_country` aggregates the whole country. City aggregates are verified to equal the sum of their consulates, and country totals are reconciled against the Commission's own published figures at build time.
+
+Cyprus is reported on its own sheet because it did not fully apply the Schengen acquis in 2025, and the source says its figures are **national visas, not Schengen visas**. Those 4 records carry their own methodology string and are deliberately excluded from every aggregate.
 
 `data/manifest.json` records the direct download URL, landing page URL, format, retrieval date, byte size and checksum for every source. The UK download path contains a hashed segment that changes on republish, which is why the landing page URL is recorded alongside it.
 

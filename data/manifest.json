@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T20:21:16Z",
+  "generated_at": "2026-08-17T21:44:38Z",
   "generated_by": "scripts/fetch-sources.py",
   "note": "Raw files live in data/raw/, which is gitignored and never read at runtime. Rebuild the curated JSON with python scripts/build-dataset.py.",
   "sources": [
@@ -51,6 +51,26 @@
           "sha256": "306e3378c8c1cb64e468210805514c7e1c6624056036a9f79ff2fd05bea5debf"
         }
       ]
+    },
+    {
+      "id": "eu_commission_schengen_consulates",
+      "title": "EU Commission, Schengen visa statistics for consulates",
+      "description": "Short stay uniform visas applied for, issued and not issued at Schengen state consulates worldwide, by the country and city the consulate sits in.",
+      "destination": "Schengen area",
+      "axis": "application_location",
+      "format": "xlsx",
+      "download_url": "https://home-affairs.ec.europa.eu/document/download/56816949-e59f-442b-9091-5d03360bf860_en",
+      "landing_url": "https://home-affairs.ec.europa.eu/policies/schengen-borders-and-visa/visa-policy/short-stay-visas-issued-schengen-countries_en",
+      "retrieved_at": "2026-08-17",
+      "publication": "2025 compilation, covering the 28 states fully applying the Schengen acquis plus a separate sheet for Cyprus. Earlier years back to 2019 are listed on the same landing page.",
+      "source_year": 2025,
+      "year_basis": "calendar_year",
+      "methodology": "EU Commission Schengen visa statistics for consulates, compiled from returns made by the Schengen States under Visa Code Article 46 and Annex XII. The axis is application location, not nationality: this file has no applicant nationality column anywhere, so a record says what happened at the consulates in a city, not what happens to a given passport. A Nigerian applying in Dubai appears in the Dubai rows. The measure is uniform visas not issued divided by uniform visas applied for. Not issued is broader than refused: it includes withdrawn and inadmissible applications, so this rate runs above a true refusal rate and must not be labelled as one. Counts are applications, not people. Not comparable to the US per person adjusted rate or the UK per decision rate without saying so.",
+      "url_stability_note": "The download path is an opaque document id with no year in it, and the Commission publishes a new one each year, usually in spring. If the file no longer says 2025, open landing_url and take the current 'visa statistics for consulates' link.",
+      "raw_path": "data/raw/eu-schengen-visa-statistics-consulates-2025.xlsx",
+      "bytes": 512813,
+      "sha256": "d1c134ab23ee0d25a03e8be00e05757b49412ec05114e80b5fec5a2afff4bbbf",
+      "supporting_files": []
     }
   ]
 }
