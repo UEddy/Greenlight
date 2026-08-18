@@ -190,12 +190,27 @@ Needs Python 3 with `openpyxl` and `pypdf`, plus `curl`. Downloads go through cu
 | UK Home Office, table Vis_D02 | Visitor visas, calendar year 2025, per decision | nationality | 12 |
 | US State Department, B visa adjusted refusal rates | Fiscal year 2025, worldwide | nationality | 12 |
 | EU Commission Schengen visa statistics | Calendar year 2025, per application | application location | 277 |
+| Published financial requirements | Version 01/04/2026, all three destinations | destination | 32 |
 
 **The Schengen file is not a nationality dataset and must never be rendered as one.** It has no applicant nationality column anywhere. A record says what happened at the consulates in a city, not what happens to a given passport, so a Nigerian applying in Dubai appears in the Dubai rows. Its measure is uniform visas **not issued**, which includes withdrawn and inadmissible applications and therefore runs above a true refusal rate.
 
 Schengen records come at three levels, tagged in a `level` field: `consulate` is one issuing state at one city, so France at Lagos stands alone; `consulate_city` aggregates every state at that city; `consulate_country` aggregates the whole country. City aggregates are verified to equal the sum of their consulates, and country totals are reconciled against the Commission's own published figures at build time.
 
 Cyprus is reported on its own sheet because it did not fully apply the Schengen acquis in 2025, and the source says its figures are **national visas, not Schengen visas**. Those 4 records carry their own methodology string and are deliberately excluded from every aggregate.
+
+### Financial requirements
+
+The fourth dataset answers a different question from the other three, so it carries a third axis value, `destination`. A refusal rate is about a passport or about a place you apply from. A financial requirement is set by the country you are travelling to. Never join them as though they shared an axis, and never present a financial requirement as something that moves the refusal rate.
+
+**The destinations disagree about whether the question even has an answer.** Each of the 29 Schengen states publishes a per day reference amount, and they range from 14 EUR in Latvia to 121.10 EUR in Spain, a spread of almost nine to one across a single visa area. The United Kingdom and the United States publish nothing. Appendix V: Visitor contains no sterling figure anywhere, and the Home Office caseworker guidance says in terms that there is no set level of funds required. The B visa chapter of the Foreign Affairs Manual contains no dollar figure anywhere. Both assess adequacy case by case against the applicant's own itinerary.
+
+So four records carry `basis: none_published`: the UK, the US, Austria and Cyprus, the last two being the Schengen states that decline to fix an amount. **A missing figure is recorded as missing.** No rule of thumb, forum number or visa agency figure is ever substituted for one, because a made up threshold is worse than an honest gap: it would be the one number a user actually acts on.
+
+Amounts are recorded as published. They are never converted between currencies, never uprated, and never summed across separate requirements. Where a state publishes several amounts for the same day, the headline is the one that applies to a traveller paying their own way with no host declaration, and the rest are kept in `variants`. Italy has no headline daily amount at all, on purpose: it publishes a grid keyed on trip length, and collapsing that to one number would misstate it for most trips.
+
+Unlike the other three, this dataset is transcribed by hand in `scripts/financial_requirements.py` rather than parsed. The source is prose, one written section per state, so picking the number is a reading rather than a parse and belongs somewhere it can be checked line by line. The build still refuses to write it if a Schengen state is missing, if a record claims both an amount and that nothing is published, or if the UK or US record is dropped.
+
+Most figures rest on the Commission annex, which is the states' own notified amounts. Five states were also read on their own government page, marked with a `national_source`. Two findings came out of that: Spain's ministry publishes 121.10 EUR per day effective 1 January 2026 against the annex's 122.10, and the national figure wins because a state is the authority on its own amount. Luxembourg's own page publishes no amount at all, so its 67 EUR exists only in the annex, anchored to a 2018 wage. Treat it as the weakest figure here.
 
 `data/manifest.json` records the direct download URL, landing page URL, format, retrieval date, byte size and checksum for every source. The UK download path contains a hashed segment that changes on republish, which is why the landing page URL is recorded alongside it.
 
@@ -212,4 +227,6 @@ data/
   manifest.json     provenance for every source
 docs/               build spec
 scripts/            dataset fetch and build
+  sources.py                 source registry and methodology strings
+  financial_requirements.py  curated financial records, transcribed by hand
 ```

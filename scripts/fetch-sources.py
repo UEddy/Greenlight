@@ -127,13 +127,35 @@ def fetch_one(url, filename, force, label):
         "raw_path": f"data/raw/{filename}",
         "bytes": size,
         "sha256": digest,
+    }, cached
+
+
+def previous_retrieval_dates():
+    """retrieved_at from the last manifest, keyed by source id.
+
+    A cached file was not fetched today, so stamping today's date on it would
+    put a retrieval date in the manifest that never happened. That date is
+    copied onto every record in data/processed/, so the lie would travel all
+    the way to the UI. Keep the old date for anything served from cache.
+    """
+    if not MANIFEST_PATH.exists():
+        return {}
+    try:
+        manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return {}
+    return {
+        source["id"]: source["retrieved_at"]
+        for source in manifest.get("sources", [])
+        if source.get("retrieved_at")
     }
 
 
 def main():
     force = "--force" in sys.argv
     RAW_DIR.mkdir(parents=True, exist_ok=True)
-    retrieved_at = date.today().isoformat()
+    today = date.today().isoformat()
+    previous = previous_retrieval_dates()
 
     manifest_sources = []
     failures = []
@@ -141,7 +163,7 @@ def main():
     for source in SOURCES:
         print(f"\n{source['id']}")
         try:
-            primary = fetch_one(
+            primary, primary_cached = fetch_one(
                 source["download_url"], source["raw_filename"], force, source["id"]
             )
         except Exception:
@@ -152,15 +174,22 @@ def main():
             failures.append(source["id"])
             continue
 
+        # The retrieval date describes the newest byte in the source, so a
+        # freshly downloaded supporting file moves it even when the primary
+        # came from cache.
+        retrieved_at = previous.get(source["id"], today) if primary_cached else today
+
         extras = []
         for extra in source.get("extra_files", []):
             try:
-                fetched = fetch_one(
+                fetched, extra_cached = fetch_one(
                     extra["url"], extra["raw_filename"], force, extra["raw_filename"]
                 )
             except Exception:
                 failures.append(f"{source['id']}:{extra['raw_filename']}")
                 continue
+            if not extra_cached:
+                retrieved_at = today
             extras.append(
                 {
                     "role": extra["role"],

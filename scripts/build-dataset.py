@@ -24,7 +24,22 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from sources import COUNTRIES, NATIONALITIES, SCHENGEN_CYPRUS_METHODOLOGY  # noqa: E402
+from financial_requirements import (  # noqa: E402
+    AMOUNT_STATUSES,
+    ANNEX_VERSION,
+    BASES,
+    RECORDS as FINANCIAL_RECORDS,
+    RETRIEVED_AT as FINANCIAL_RETRIEVED_AT,
+)
+from sources import (  # noqa: E402
+    COUNTRIES,
+    FINANCIAL_THRESHOLD_CAVEAT,
+    NATIONALITIES,
+    SCHENGEN_CYPRUS_METHODOLOGY,
+    SCHENGEN_FINANCIAL_METHODOLOGY,
+    UK_FINANCIAL_METHODOLOGY,
+    US_FINANCIAL_METHODOLOGY,
+)
 
 import openpyxl  # noqa: E402
 from pypdf import PdfReader  # noqa: E402
@@ -36,6 +51,19 @@ PROCESSED_DIR = REPO_ROOT / "data" / "processed"
 UK_SOURCE_ID = "uk_home_office_vis_d02"
 US_SOURCE_ID = "us_state_b_visa_adjusted_refusal_rates"
 SCHENGEN_SOURCE_ID = "eu_commission_schengen_consulates"
+FINANCIAL_SOURCE_ID = "eu_commission_reference_amounts_annex_25"
+
+# The 29 states fully applying the Schengen acquis in 2026. Cyprus is not one
+# of them and is carried separately, the same way the consulate dataset does
+# it. If a state is missing from the curated table, the build fails rather
+# than shipping a dataset with a silent hole in it.
+SCHENGEN_STATES = [
+    "Austria", "Belgium", "Bulgaria", "Croatia", "Czech Republic", "Denmark",
+    "Estonia", "Finland", "France", "Germany", "Greece", "Hungary", "Iceland",
+    "Italy", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Malta",
+    "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Slovakia",
+    "Slovenia", "Spain", "Sweden", "Switzerland",
+]
 
 UK_TARGET_YEAR = "2025"
 UK_VISA_GROUP = "Visitor"
@@ -455,6 +483,175 @@ def build_schengen(source):
     return records, cyprus_records, total_rows
 
 
+def build_financial(source):
+    """Validate the curated financial requirement table and attach provenance.
+
+    Nothing is parsed here. The records are transcribed by hand in
+    scripts/financial_requirements.py because the source is prose, so this
+    function's whole job is to refuse to write anything that is internally
+    inconsistent or incomplete.
+    """
+    methodologies = {
+        "Schengen area": SCHENGEN_FINANCIAL_METHODOLOGY,
+        "United Kingdom": UK_FINANCIAL_METHODOLOGY,
+        "United States": US_FINANCIAL_METHODOLOGY,
+    }
+
+    records = []
+    for record in FINANCIAL_RECORDS:
+        record = dict(record)
+        state = record["state"]
+
+        if record["basis"] not in BASES:
+            raise SystemExit(f"financial: {state} has unknown basis {record['basis']!r}.")
+        if record["amount_status"] not in AMOUNT_STATUSES:
+            raise SystemExit(
+                f"financial: {state} has unknown amount_status {record['amount_status']!r}."
+            )
+        if record["jurisdiction"] not in methodologies:
+            raise SystemExit(f"financial: {state} has unknown jurisdiction.")
+        if not record["source_url"] or not record["source_year"]:
+            raise SystemExit(f"financial: {state} is missing source_url or source_year.")
+
+        amounts = [
+            record["per_day_amount"],
+            record["per_entry_amount"],
+            record["trip_minimum_amount"],
+        ]
+        published = record["basis"] != "none_published"
+
+        # An amount and a claim that nothing is published cannot both be true.
+        if not published:
+            if any(a is not None for a in amounts) or record["currency"] is not None:
+                raise SystemExit(
+                    f"financial: {state} says none_published but carries an amount. "
+                    f"One of the two is wrong."
+                )
+            if record["amount_status"] != "none_published":
+                raise SystemExit(
+                    f"financial: {state} says none_published but amount_status is "
+                    f"{record['amount_status']!r}."
+                )
+        else:
+            if record["currency"] is None:
+                raise SystemExit(f"financial: {state} publishes an amount but no currency.")
+            if all(a is None for a in amounts) and not record["variants"]:
+                raise SystemExit(
+                    f"financial: {state} claims a published requirement but records "
+                    f"no amount anywhere, not even in variants."
+                )
+        for value in amounts:
+            if value is not None and value <= 0:
+                raise SystemExit(f"financial: {state} has a non positive amount.")
+
+        record["axis"] = "destination"
+        record["measure"] = "published_financial_requirement"
+        record["retrieved_at"] = FINANCIAL_RETRIEVED_AT
+        record["methodology"] = methodologies[record["jurisdiction"]]
+        record["threshold_caveat"] = FINANCIAL_THRESHOLD_CAVEAT
+        records.append(record)
+
+    # Coverage. Every Schengen state must be present exactly once.
+    found = {r["state"] for r in records if r["in_schengen_area"]}
+    missing = [s for s in SCHENGEN_STATES if s not in found]
+    if missing:
+        raise SystemExit(
+            f"financial: no record for {', '.join(missing)}. Every Schengen state "
+            f"needs a record, including one that says no amount is published. "
+            f"Add it to scripts/financial_requirements.py."
+        )
+    unexpected = sorted(found - set(SCHENGEN_STATES))
+    if unexpected:
+        raise SystemExit(
+            f"financial: {', '.join(unexpected)} is flagged as in the Schengen "
+            f"area but is not in SCHENGEN_STATES."
+        )
+    states = [r["state"] for r in records]
+    duplicates = sorted({s for s in states if states.count(s) > 1})
+    if duplicates:
+        raise SystemExit(f"financial: duplicate records for {', '.join(duplicates)}.")
+
+    for jurisdiction in ("United Kingdom", "United States"):
+        if not any(r["jurisdiction"] == jurisdiction for r in records):
+            raise SystemExit(
+                f"financial: no record for {jurisdiction}. The absence of a "
+                f"published threshold is a record, not a reason to omit one."
+            )
+    return records
+
+
+def write_financial(records):
+    published = [r for r in records if r["basis"] != "none_published"]
+    silent = [r for r in records if r["basis"] == "none_published"]
+    schengen_records = [r for r in records if r["jurisdiction"] == "Schengen area"]
+    checked = [r for r in schengen_records if r.get("national_source")]
+    disagree = [
+        r["state"] for r in checked if r["national_source"]["agrees_with_annex"] is False
+    ]
+
+    payload = {
+        "schema_version": 1,
+        "dataset_id": "published_financial_requirements",
+        "title": "Published financial requirements for the three supported destinations",
+        "description": (
+            "What each destination publishes as the money a short stay visitor "
+            "must show. Schengen states publish a per day reference amount "
+            "each. The United Kingdom and the United States publish no figure "
+            "and assess adequacy case by case."
+        ),
+        "destinations": ["Schengen area", "United Kingdom", "United States"],
+        "axis": "destination",
+        "axis_warning": (
+            "This dataset is keyed by the destination that sets the "
+            "requirement. It is not keyed by passport and not keyed by where "
+            "the application is made. Do not join it to the refusal datasets "
+            "as though the three shared an axis, and do not present a "
+            "financial requirement as though it moved the refusal rate."
+        ),
+        "source_year": 2026,
+        "year_basis": "publication_version_date",
+        "retrieved_at": FINANCIAL_RETRIEVED_AT,
+        "annex_version": ANNEX_VERSION,
+        "methodology_by_jurisdiction": {
+            "Schengen area": SCHENGEN_FINANCIAL_METHODOLOGY,
+            "United Kingdom": UK_FINANCIAL_METHODOLOGY,
+            "United States": US_FINANCIAL_METHODOLOGY,
+        },
+        "threshold_caveat": FINANCIAL_THRESHOLD_CAVEAT,
+        "curation_note": (
+            "Transcribed by hand from prose, not parsed. The Commission annex "
+            "gives one written section per state rather than a table, so the "
+            "reading is recorded in scripts/financial_requirements.py where it "
+            "can be checked against the source line by line."
+        ),
+        "generated_by": "scripts/build-dataset.py",
+        "record_count": len(records),
+        "records_with_published_amount": len(published),
+        "records_with_no_published_amount": len(silent),
+        "schengen_states_total": len(schengen_records),
+        "schengen_states_checked_against_national_page": len(checked),
+        "schengen_states_where_national_page_disagrees": disagree,
+        "not_found": [],
+        "not_found_note": (
+            "Empty, and that is a real result rather than an unchecked box. "
+            "Every Schengen state has a section in the Commission annex, which "
+            "is an official EU publication of the amounts the states "
+            "themselves notified, so no state had to be recorded as not found. "
+            "Read schengen_states_checked_against_national_page next to it: "
+            "most figures rest on that one compilation, and only the states "
+            "carrying a national_source were also read on their own "
+            "government's page. Luxembourg is the case worth knowing about, "
+            "since its own page publishes no amount at all."
+        ),
+        "records": records,
+    }
+
+    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    path = PROCESSED_DIR / "financial-requirements.json"
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
 def write_dataset(filename, source, records, extra_header=None):
     payload = {
         "schema_version": 1,
@@ -578,6 +775,30 @@ def main():
             f"{record['denominator']:>10} {record['not_issued_rate_percent']:>7.2f}%  {', '.join(cities)}"
         )
 
+    financial_records = build_financial(manifest[FINANCIAL_SOURCE_ID])
+    financial_path = write_financial(financial_records)
+
+    print("\nPublished financial requirements, by destination")
+    print(f"  {'state':16} {'basis':28} {'per day':>10}  {'status':24} national page")
+    for record in financial_records:
+        if record["per_day_amount"] is None:
+            amount = "none" if record["basis"] == "none_published" else "see variants"
+        else:
+            amount = f"{record['per_day_amount']:.2f} {record['currency']}"
+        national = "not checked"
+        if record.get("national_source"):
+            source = record["national_source"]
+            if not source["states_an_amount"]:
+                national = "checked, publishes no amount"
+            elif source["agrees_with_annex"]:
+                national = "checked, agrees"
+            else:
+                national = "checked, DISAGREES"
+        print(
+            f"  {record['state']:16} {record['basis']:28} {amount:>10}  "
+            f"{record['amount_status']:24} {national}"
+        )
+
     print(f"\nwrote {uk_path.relative_to(REPO_ROOT)}  ({len(uk_records)} records)")
     print(f"wrote {us_path.relative_to(REPO_ROOT)}  ({len(us_records)} records)")
     print(f"wrote {schengen_path.relative_to(REPO_ROOT)}  ({len(all_schengen)} records)")
@@ -586,6 +807,9 @@ def main():
         print(f"US PDF non nationality rows excluded: {', '.join(us_excluded)}")
     print(f"Schengen sheet had {sch_total_rows} consulate rows after dropping footers.")
     print(f"Schengen records: {len(sch_records)} uniform visa, {len(cyprus_records)} Cyprus national visa.")
+    print(f"wrote {financial_path.relative_to(REPO_ROOT)}  ({len(financial_records)} records)")
+    silent = [r["state"] for r in financial_records if r["basis"] == "none_published"]
+    print(f"Destinations publishing no financial threshold: {', '.join(silent)}.")
     return 0
 
 

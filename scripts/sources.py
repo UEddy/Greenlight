@@ -4,10 +4,12 @@ This module is the single place that knows where raw data comes from. Both
 scripts/fetch-sources.py and scripts/build-dataset.py import it, so a URL is
 never written down twice and cannot drift between the two steps.
 
-Schengen is deliberately absent. It is a separate axis, application_location
-rather than nationality, and it is scheduled for the next build session. The
-verified URLs are recorded at the bottom of this file so adding it is a small
-edit rather than another round of research.
+Four sources are registered. Three are statistical files that a script parses
+into refusal records. The fourth, the Commission table of reference amounts,
+is prose rather than a table, one section per state, so it is transcribed by
+hand into scripts/financial_requirements.py instead of parsed. It is still
+fetched and checksummed here, because the point of the manifest is that a
+reviewer can pull the same bytes next year and diff them.
 """
 
 # The 12 countries named in the spec.
@@ -96,6 +98,71 @@ SCHENGEN_CYPRUS_METHODOLOGY = (
     "uniform visas, so a Cyprus record does not describe Schengen access and "
     "is excluded from every aggregate in this dataset. Otherwise the measure "
     "and its caveats match the main Schengen methodology."
+)
+
+SCHENGEN_FINANCIAL_METHODOLOGY = (
+    "Reference amounts for means of subsistence fixed by each national "
+    "authority and notified to the European Commission, published as Annex 25 "
+    "of the Practical Handbook for Border Guards, which the same document "
+    "states is also Annex 18 of the Visa Code Handbook. The axis is "
+    "destination: the amount is set by the state being travelled to, so it is "
+    "not a figure about a passport and not a figure about a consulate "
+    "location, and it must never be put on the same axis as the refusal "
+    "datasets. The amounts are what a traveller must show to cross the "
+    "external border, and the Commission publishes the same table to "
+    "consulates assessing means of subsistence on a short stay visa "
+    "application. Many states publish more than one amount for the same day "
+    "depending on whether the traveller holds a host declaration, a prepaid "
+    "booking or a hotel reservation. Where that happens the headline amount "
+    "recorded here is the one required of a traveller paying their own way "
+    "with no host declaration, because that is the case this product is "
+    "asked about, and every other amount the state publishes is kept in "
+    "variants. Amounts are recorded as published. They are never converted "
+    "between currencies, never summed across separate requirements such as "
+    "subsistence and accommodation, and never uprated for inflation."
+)
+
+UK_FINANCIAL_METHODOLOGY = (
+    "The United Kingdom publishes no financial threshold for visitors. "
+    "Appendix V: Visitor requires at V 4.2(e) that the applicant have "
+    "sufficient funds to cover all reasonable costs in relation to their "
+    "visit without working or accessing public funds, including the cost of "
+    "the return or onward journey, any costs relating to their dependants "
+    "and the cost of planned activities. The appendix states no amount, in "
+    "sterling or per day, anywhere in its text. The Home Office caseworker "
+    "guidance, Visit guidance version 17.0 published 25 February 2026, says "
+    "in terms that there is no set level of funds required for an applicant "
+    "to show this, and directs the caseworker to weigh the likely cost of "
+    "the stay against the applicant's income or savings minus their ongoing "
+    "financial commitments. Adequacy is assessed case by case. Any per day "
+    "sterling figure quoted elsewhere for UK visitor visas is not a "
+    "published requirement, and this record states the absence rather than "
+    "substituting one."
+)
+
+US_FINANCIAL_METHODOLOGY = (
+    "The United States publishes no financial threshold for B visitor visas. "
+    "The Foreign Affairs Manual at 9 FAM 402.2-2(E) requires that the "
+    "arrangements the applicant has made for defraying the expenses of their "
+    "visit and return abroad be adequate to prevent their obtaining unlawful "
+    "employment in the United States. The B visa chapter states no dollar "
+    "amount and no minimum bank balance anywhere in its text. Adequacy is "
+    "judged by the consular officer case by case, alongside the INA 214(b) "
+    "presumption that every applicant is an intending immigrant until they "
+    "overcome it. Any dollar figure or minimum balance quoted elsewhere for "
+    "B visas is not a published requirement, and this record states the "
+    "absence rather than substituting one."
+)
+
+# Meeting the number is not the same as getting the visa. This travels with
+# the data for the same reason BASE_RATE_CAVEAT does, so a UI layer cannot
+# drop it.
+FINANCIAL_THRESHOLD_CAVEAT = (
+    "A published reference amount is a minimum condition for entry, not a "
+    "prediction of the decision. Showing the amount does not make a visa "
+    "likely, and most refusals turn on purpose of travel, ties and "
+    "credibility rather than on the balance shown. Where a state publishes "
+    "no amount, the requirement is still real and is assessed case by case."
 )
 
 SOURCES = [
@@ -194,6 +261,45 @@ SOURCES = [
             "and the Commission publishes a new one each year, usually in "
             "spring. If the file no longer says 2025, open landing_url and "
             "take the current 'visa statistics for consulates' link."
+        ),
+        "extra_files": [],
+    },
+    {
+        "id": "eu_commission_reference_amounts_annex_25",
+        "title": (
+            "European Commission, reference amounts required for the crossing "
+            "of the external border fixed by national authorities, Annex 25 "
+            "of the Practical Handbook for Border Guards"
+        ),
+        "description": (
+            "Means of subsistence amounts fixed by each Schengen state and "
+            "notified to the Commission, one prose section per state, also "
+            "published as Annex 18 of the Visa Code Handbook."
+        ),
+        "destination": "Schengen area",
+        "axis": "destination",
+        "format": "pdf",
+        "landing_url": "https://home-affairs.ec.europa.eu/policies/schengen/border-crossing_en",
+        "download_url": "https://home-affairs.ec.europa.eu/document/download/7130e21d-c1c8-41fd-9c83-b6fe312d4f5c_en",
+        "raw_filename": "eu-commission-reference-amounts-annex-25.pdf",
+        "publication": (
+            "Version dated 01/04/2026 in the running header of every page. "
+            "Covers the 29 states fully applying the Schengen acquis plus a "
+            "section for Cyprus."
+        ),
+        "source_year": 2026,
+        "year_basis": "publication_version_date",
+        "methodology": SCHENGEN_FINANCIAL_METHODOLOGY,
+        "url_stability_note": (
+            "The document id has been stable across versions: the same id "
+            "served the 21/03/2024 version and now serves the 01/04/2026 "
+            "one. The Commission replaces the file in place, so the URL "
+            "changing is not the failure mode here. The version date in the "
+            "page header is the only version marker, and it is transcribed "
+            "into every record as source_version. If that header no longer "
+            "reads 01/04/2026, a state may have moved its amount: re-read "
+            "the annex against scripts/financial_requirements.py before "
+            "trusting the curated figures."
         ),
         "extra_files": [],
     },
