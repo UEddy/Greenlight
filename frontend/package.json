@@ -25,8 +25,11 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.4",
     "next": "^16.3.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "viem": "^2.55.18",
+    "wagmi": "^3.7.6"
   }
 }

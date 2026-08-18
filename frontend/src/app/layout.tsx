@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Web3Provider } from "@/components/Web3Provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen">
+        <Web3Provider>
         <div className="mx-auto flex min-h-screen w-full max-w-3xl flex-col px-4 sm:px-6">
           <header className="flex items-baseline gap-3 py-6">
             <a
@@ -31,6 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span className="text-xs text-[#8fa0bd]">
               honest odds, before the fee
             </span>
+            <a href="/trip" className="ml-auto text-xs text-[#8fa0bd] underline underline-offset-2">
+              Trip escrow
+            </a>
           </header>
 
           <main className="flex-1 pb-12">{children}</main>
@@ -52,6 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </p>
           </footer>
         </div>
+        </Web3Provider>
       </body>
     </html>
   );
