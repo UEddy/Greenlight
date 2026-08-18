@@ -1,0 +1,98 @@
+{
+  "profile": {
+    "passportCountry": "Vietnam",
+    "passportStatus": "valid",
+    "residenceCountry": "Vietnam",
+    "residenceCity": "HANOI",
+    "destination": "Schengen area",
+    "schengenState": "Italy",
+    "purpose": "tourism",
+    "tripLengthDays": 4,
+    "fundsAvailable": {
+      "amount": 2500,
+      "currency": "EUR"
+    },
+    "hasAccommodationBooked": true,
+    "ties": {
+      "employmentStatus": "employed",
+      "ownsProperty": true
+    },
+    "travelHistory": {
+      "previousVisitsToDestination": 1,
+      "previousRefusals": 0
+    }
+  },
+  "response": {
+    "verdict": "GO",
+    "confidence": "high",
+    "refusalRate": {
+      "nationality": null,
+      "applicationLocation": {
+        "axis": "application_location",
+        "label": "Uniform visas not issued, out of applications made, at the consulates in this place",
+        "subject": "applications made at consulates in Hanoi, Vietnam, whatever passport the applicant held",
+        "measure": "not_issued_share_of_applications",
+        "ratePercent": 10.14,
+        "numerator": 6917,
+        "denominator": 68217,
+        "sourceYear": 2025,
+        "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/56816949-e59f-442b-9091-5d03360bf860_en",
+        "methodology": "EU Commission Schengen visa statistics for consulates, compiled from returns made by the Schengen States under Visa Code Article 46 and Annex XII. The axis is application location, not nationality: this file has no applicant nationality column anywhere, so a record says what happened at the consulates in a city, not what happens to a given passport. A Nigerian applying in Dubai appears in the Dubai rows. The measure is uniform visas not issued divided by uniform visas applied for. Not issued is broader than refused: it includes withdrawn and inadmissible applications, so this rate runs above a true refusal rate and must not be labelled as one. Counts are applications, not people. Not comparable to the US per person adjusted rate or the UK per decision rate without saying so.",
+        "comparableWithOtherAxis": false
+      },
+      "axisNote": "These two fields answer different questions and are never comparable. The nationality figure is about the passport held. The application location figure is about the place where applications were made, and that source has no applicant nationality column at all, so it says nothing about any passport. Render them separately, each with what it counts, and never combine or average them."
+    },
+    "sourceYear": 2025,
+    "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/56816949-e59f-442b-9091-5d03360bf860_en",
+    "financialRequirement": {
+      "destination": "Schengen area",
+      "state": "Italy",
+      "published": true,
+      "basis": "per_trip_tiered_by_duration",
+      "amountStatus": "binding",
+      "currency": "EUR",
+      "perDayAmount": null,
+      "perEntryAmount": null,
+      "tripMinimumAmount": null,
+      "estimatedTripTotal": null,
+      "applicableVariants": [
+        {
+          "condition": "1 to 5 days, one participant",
+          "basis": "per_trip",
+          "amount": 269.6,
+          "currency": "EUR",
+          "note": null,
+          "whyItApplies": "Surfaced because the trip is 4 days long and the applicant is travelling alone."
+        }
+      ],
+      "qualitativeStatement": null,
+      "legalBasis": "Article 4(3) of Legislative Decree No 286 of 28 July 1998, with the directive of 1 March 2000 defining means of support, Table A.",
+      "notes": "per_day_amount is null on purpose. Italy publishes a grid, not a daily rate: below 6 days the requirement is a single fixed sum, and above 10 days it is a fixed sum plus a daily rate. Collapsing that to one number would misstate it for most trip lengths, so the grid is kept in variants and the caller must read the trip length.",
+      "sourceYear": 2026,
+      "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/7130e21d-c1c8-41fd-9c83-b6fe312d4f5c_en",
+      "methodology": "Reference amounts for means of subsistence fixed by each national authority and notified to the European Commission, published as Annex 25 of the Practical Handbook for Border Guards, which the same document states is also Annex 18 of the Visa Code Handbook. The axis is destination: the amount is set by the state being travelled to, so it is not a figure about a passport and not a figure about a consulate location, and it must never be put on the same axis as the refusal datasets. The amounts are what a traveller must show to cross the external border, and the Commission publishes the same table to consulates assessing means of subsistence on a short stay visa application. Many states publish more than one amount for the same day depending on whether the traveller holds a host declaration, a prepaid booking or a hotel reservation. Where that happens the headline amount recorded here is the one required of a traveller paying their own way with no host declaration, because that is the case this product is asked about, and every other amount the state publishes is kept in variants. Amounts are recorded as published. They are never converted between currencies, never summed across separate requirements such as subsistence and accommodation, and never uprated for inflation.",
+      "thresholdCaveat": "A published reference amount is a minimum condition for entry, not a prediction of the decision. Showing the amount does not make a visa likely, and most refusals turn on purpose of travel, ties and credibility rather than on the balance shown. Where a state publishes no amount, the requirement is still real and is assessed case by case."
+    },
+    "reasons": [
+      "You maintain clear social and economic ties through confirmed employment and property ownership in your home country.",
+      "Your documented travel history shows a successful prior visit to the destination state with no record of visa refusals.",
+      "Your self reported funds comfortably satisfy the published minimum financial tier for a brief single traveler trip to Italy.",
+      "The requested duration is short and supported by booked accommodation."
+    ],
+    "checklist": [
+      "Provide recent bank statements showing your reported savings and consistent salary credits.",
+      "Obtain a formal employment confirmation letter detailing your position, salary, and approved leave.",
+      "Include official property registration documents to evidence real estate ownership.",
+      "Prepare your accommodation confirmation and travel itinerary for the full duration of the stay.",
+      "Present your current passport along with evidence of your previous travel to the destination."
+    ],
+    "baseRateCaveat": "This is a population base rate for a nationality group, not a personal probability. Do not render it as this applicant's odds.",
+    "baseRateReading": "Among applications made at consulates in Hanoi, Vietnam, whatever passport the applicant held, the published figure for 2025 is 10.14 percent, drawn from 6,917 unissued visas out of 68,217 applications for Schengen area: this is a location base rate rather than your personal odds, and this verdict assesses your specific profile against it.",
+    "coverageNotes": [
+      {
+        "field": "refusalRate.nationality",
+        "message": "No nationality refusal rate is shown for the Schengen area. The Commission file has no applicant nationality column at all, so no such figure exists to retrieve. What is shown instead is a rate for where the application is made."
+      }
+    ]
+  }
+}

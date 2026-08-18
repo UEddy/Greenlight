@@ -1,0 +1,80 @@
+{
+  "profile": {
+    "passportCountry": "Nigeria",
+    "passportStatus": "valid",
+    "residenceCountry": "Nigeria",
+    "residenceCity": "LAGOS",
+    "destination": "United Kingdom",
+    "purpose": "conference",
+    "tripLengthDays": 6,
+    "fundsAvailable": {
+      "amount": 900,
+      "currency": "GBP"
+    },
+    "ties": {
+      "employmentStatus": "self_employed",
+      "ownsProperty": false
+    },
+    "travelHistory": {
+      "previousVisitsToDestination": 0,
+      "previousRefusals": 1
+    }
+  },
+  "response": {
+    "verdict": "ABORT",
+    "confidence": "medium",
+    "refusalRate": {
+      "nationality": {
+        "axis": "nationality",
+        "label": "Visitor visa decisions refused, out of decisions made, for holders of this passport",
+        "subject": "Nigeria passport holders applying for a UK Visitor visa",
+        "measure": "refused_share_of_decisions",
+        "ratePercent": 38.64,
+        "numerator": 66143,
+        "denominator": 171182,
+        "sourceYear": 2025,
+        "sourceUrl": "https://assets.publishing.service.gov.uk/media/6a1d5a9f916cd732dcdaad5c/entry-clearance-visa-outcomes-datasets-mar-2026.xlsx",
+        "methodology": "UK Home Office table Vis_D02, outcomes of entry clearance visa applications. Counts are decisions taken in the period, not unique applicants, so one person can appear more than once across quarters. The refusal rate published here is refused divided by issued plus refused. Withdrawn and lapsed cases are reported separately in outcome_counts and are excluded from the denominator. This is a per decision rate and is not comparable to the US per person adjusted rate without saying so.",
+        "comparableWithOtherAxis": false
+      },
+      "applicationLocation": null,
+      "axisNote": "These two fields answer different questions and are never comparable. The nationality figure is about the passport held. The application location figure is about the place where applications were made, and that source has no applicant nationality column at all, so it says nothing about any passport. Render them separately, each with what it counts, and never combine or average them."
+    },
+    "sourceYear": 2025,
+    "sourceUrl": "https://assets.publishing.service.gov.uk/media/6a1d5a9f916cd732dcdaad5c/entry-clearance-visa-outcomes-datasets-mar-2026.xlsx",
+    "financialRequirement": {
+      "destination": "United Kingdom",
+      "state": null,
+      "published": false,
+      "basis": "none_published",
+      "amountStatus": "none_published",
+      "currency": null,
+      "perDayAmount": null,
+      "perEntryAmount": null,
+      "tripMinimumAmount": null,
+      "estimatedTripTotal": null,
+      "applicableVariants": [],
+      "qualitativeStatement": "United Kingdom publishes no set amount for this route. The official position is that funds must be adequate for this specific trip, judged case by case against the itinerary, the applicant's own means and their ties, rather than against a threshold. Version 17.0, published for Home Office staff on 25 February 2026, reads: check the applicant has access to sufficient resources to maintain and accommodate themselves adequately for the whole of their planned visit. There is no set level of funds required for an applicant to show this. Legal basis: Immigration Rules Appendix V: Visitor, paragraphs V 4.2(e) and V 4.3. Funds relied on must be held in a financial institution permitted under FIN 2.1 of Appendix Finance..",
+      "legalBasis": "Immigration Rules Appendix V: Visitor, paragraphs V 4.2(e) and V 4.3. Funds relied on must be held in a financial institution permitted under FIN 2.1 of Appendix Finance.",
+      "notes": "Checked directly: the text of Appendix V contains no sterling figure and no per day figure anywhere. The caseworker guidance is explicit that there is no set level of funds. Third party support is allowed only where the third party has a genuine professional or personal relationship with the applicant, is not in breach of immigration laws, and can and will support them for the stay.",
+      "sourceYear": 2026,
+      "sourceUrl": "https://www.gov.uk/guidance/immigration-rules/immigration-rules-appendix-v-visitor",
+      "methodology": "The United Kingdom publishes no financial threshold for visitors. Appendix V: Visitor requires at V 4.2(e) that the applicant have sufficient funds to cover all reasonable costs in relation to their visit without working or accessing public funds, including the cost of the return or onward journey, any costs relating to their dependants and the cost of planned activities. The appendix states no amount, in sterling or per day, anywhere in its text. The Home Office caseworker guidance, Visit guidance version 17.0 published 25 February 2026, says in terms that there is no set level of funds required for an applicant to show this, and directs the caseworker to weigh the likely cost of the stay against the applicant's income or savings minus their ongoing financial commitments. Adequacy is assessed case by case. Any per day sterling figure quoted elsewhere for UK visitor visas is not a published requirement, and this record states the absence rather than substituting one.",
+      "thresholdCaveat": "A published reference amount is a minimum condition for entry, not a prediction of the decision. Showing the amount does not make a visa likely, and most refusals turn on purpose of travel, ties and credibility rather than on the balance shown. Where a state publishes no amount, the requirement is still real and is assessed case by case."
+    },
+    "reasons": [
+      "You have a prior visa refusal on record, which draws heightened scrutiny to how your circumstances have changed since that decision.",
+      "Your status as a self employed applicant without registered real estate places the full weight of proving economic ties on your business records and active cash flow.",
+      "You have no recorded travel history to this destination, so you cannot rely on past compliance to demonstrate return intent."
+    ],
+    "checklist": [
+      "Obtain a formal invitation and event registration from the conference organizers in the destination.",
+      "Assemble formal business registration certificates, recent tax filings, and trade bank statements showing consistent commercial activity.",
+      "Draft a statement addressing the previous refusal with supporting evidence that demonstrates your updated situation.",
+      "Provide a comprehensive trip itinerary and proof of funds held in a recognized financial institution."
+    ],
+    "baseRateCaveat": "This is a population base rate for a nationality group, not a personal probability. Do not render it as this applicant's odds.",
+    "baseRateReading": "Among Nigeria passport holders applying for a UK Visitor visa, the official figure for 2025 shows 38.64 percent, with 66,143 refusals out of 171,182 decisions; this is a general base rate rather than your individual probability, and our verdict evaluates your specific profile against it.",
+    "coverageNotes": []
+  }
+}

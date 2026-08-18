@@ -219,7 +219,7 @@ Most figures rest on the Commission annex, which is the states' own notified amo
 ```bash
 cd backend
 npm install
-npm test          # 80 tests, offline, no API key needed
+npm test          # 110 tests, offline, no API key needed
 npm run typecheck
 npm run dev       # POST /assess on :8787
 ```
@@ -244,7 +244,33 @@ Any digit in any field fails the response. It is re-asked once with the offendin
 
 Coverage gaps return HTTP 422 with the gap, never an estimate. That includes an expired or absent passport, where the honest next step is a renewal timeline rather than a verdict on odds.
 
-Two notes on the model call. The spec asked for a low temperature, which was the right instinct, but sampling parameters are rejected on Claude Opus 5, so determinism comes from a schema constrained response and pinned effort instead; the guards are what actually hold the line, and they would be needed at any temperature. And the live model path has not been run against the API in this repo yet, because no credential was available when it was written. `test/live-model.test.ts` runs it against a profile built to bait the prohibited suggestion, and skips itself unless `ANTHROPIC_API_KEY` is set.
+### Providers
+
+Two model providers sit behind one `ModelClient` interface: `assess(system, user)` returning `ModelOutput`. Gemini on Google AI Studio's free tier is the default, Claude is intact and unchanged. Set `GREENLIGHT_PROVIDER` to `gemini` or `claude` to force one, or leave it unset and whichever key is present wins, Gemini first. Keys go in `backend/.env`, which the bare `.env` entry in `.gitignore` covers at any depth.
+
+One Zod schema drives both. Anthropic takes `ModelOutputSchema` through `zodOutputFormat`, Gemini takes it through `z.toJSONSchema()` into `responseJsonSchema`, and the Gemini path validates the parsed result against the same schema again. Neither provider hand maintains a copy of the shape, so the two cannot drift. `minLength` and `maxLength` are stripped on the way out because Gemini's documented JSON Schema subset does not include them; they were advisory anyway, and the guards enforce what actually matters.
+
+**Every guard is byte for byte the same for both providers.** They validate output, not vendor. That is the whole point: a token contract that only held for one model was never a contract.
+
+### What Gemini actually did
+
+Model `gemini-3.6-flash`, five profiles chosen to stress different paths, captured by `scripts/capture-fixtures.ts`.
+
+**Five of five complied on the first attempt.** No bare digits in any reason or checklist item, no dropped `{{subject}}`, no invented or unavailable token, no forum shopping, no misrepresentation nudge. The single retry was not consumed once, so there is no rescue rate to report. That includes a profile built specifically to bait the prohibited answer, a Ghanaian applicant to Spain, which publishes the highest daily amount in the Schengen area, with funds far short of it: Gemini returned ABORT with high confidence and never suggested filing anywhere else.
+
+That is a better result than expected, and it is worth being precise about why it is not proof. Five cases is a small sample, the temperature is pinned at zero, and compliance was measured on the one prompt these guards were written alongside. The claim supported here is that the contract is portable across vendors, not that this model can never breach it. The guards remain the thing that makes it safe, and none were touched to get this result.
+
+Finding worth keeping: model discovery on AI Studio is not trustworthy from documentation. The published examples name `gemini-3.7-flash`, which this key cannot see; `models.list` advertises `gemini-2.5-flash`, which the API then refuses with "no longer available to new users" and names `gemini-3.6-flash` as the replacement. Listing a model is not the same as being allowed to call it, and the only reliable source was the error from a real call.
+
+The free tier also returns 503 under load. `GeminiModelClient` retries 429 and 503 with backoff, which is transport resilience and deliberately separate from the guard retry in `assess.ts`: a rejected answer is never retried at the transport layer, because that would quietly add attempts to a budget the guards own.
+
+One difference in the spec's favour: Gemini accepts a sampling temperature, so the build spec's request for a low one is honoured literally at zero. Claude Opus 5 rejects sampling parameters with a 400, so on that provider determinism comes from the schema constrained response and pinned effort instead.
+
+### Fixtures
+
+`test/fixtures/` holds five real responses captured from live Gemini calls, unedited. The demo can replay them with no network and no key. `test/fixtures.test.ts` re-runs every guard over them, which proves both that the replay is safe and that what a real provider returned is genuinely compliant rather than compliant looking. A response that failed its guards was never saved, so nothing in that directory was corrected into passing.
+
+`test/live-model.test.ts` still runs against whichever provider is configured and skips when no key is present.
 
 ## Repo layout
 
@@ -262,6 +288,9 @@ scripts/            dataset fetch and build
   sources.py                 source registry and methodology strings
   financial_requirements.py  curated financial records, transcribed by hand
 backend/            Node, TypeScript
+  src/gemini.ts              Gemini provider, free tier, same schema and guards
+  src/provider.ts            picks the provider, defaults to whichever key exists
+  test/fixtures/             real captured responses, replayed offline
   src/retrieval.ts           deterministic lookup, every number originates here
   src/prompt.ts              system prompt and the context block the model reads
   src/guard.ts               figure allowlist and prohibited advice checks

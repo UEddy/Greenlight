@@ -1,0 +1,96 @@
+{
+  "profile": {
+    "passportCountry": "Nigeria",
+    "passportStatus": "valid",
+    "residenceCountry": "Nigeria",
+    "residenceCity": "ABUJA",
+    "destination": "Schengen area",
+    "schengenState": "Romania",
+    "purpose": "conference",
+    "tripLengthDays": 5,
+    "fundsAvailable": {
+      "amount": 1200,
+      "currency": "EUR"
+    },
+    "hasHostDeclaration": true,
+    "ties": {
+      "employmentStatus": "employed"
+    }
+  },
+  "response": {
+    "verdict": "MARGINAL",
+    "confidence": "medium",
+    "refusalRate": {
+      "nationality": null,
+      "applicationLocation": {
+        "axis": "application_location",
+        "label": "Uniform visas not issued, out of applications made, at the consulates in this place",
+        "subject": "applications made at consulates in Abuja, Nigeria, whatever passport the applicant held",
+        "measure": "not_issued_share_of_applications",
+        "ratePercent": 45.72,
+        "numerator": 20931,
+        "denominator": 45780,
+        "sourceYear": 2025,
+        "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/56816949-e59f-442b-9091-5d03360bf860_en",
+        "methodology": "EU Commission Schengen visa statistics for consulates, compiled from returns made by the Schengen States under Visa Code Article 46 and Annex XII. The axis is application location, not nationality: this file has no applicant nationality column anywhere, so a record says what happened at the consulates in a city, not what happens to a given passport. A Nigerian applying in Dubai appears in the Dubai rows. The measure is uniform visas not issued divided by uniform visas applied for. Not issued is broader than refused: it includes withdrawn and inadmissible applications, so this rate runs above a true refusal rate and must not be labelled as one. Counts are applications, not people. Not comparable to the US per person adjusted rate or the UK per decision rate without saying so.",
+        "comparableWithOtherAxis": false
+      },
+      "axisNote": "These two fields answer different questions and are never comparable. The nationality figure is about the passport held. The application location figure is about the place where applications were made, and that source has no applicant nationality column at all, so it says nothing about any passport. Render them separately, each with what it counts, and never combine or average them."
+    },
+    "sourceYear": 2025,
+    "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/56816949-e59f-442b-9091-5d03360bf860_en",
+    "financialRequirement": {
+      "destination": "Schengen area",
+      "state": "Romania",
+      "published": true,
+      "basis": "per_day",
+      "amountStatus": "binding",
+      "currency": "EUR",
+      "perDayAmount": 50,
+      "perEntryAmount": null,
+      "tripMinimumAmount": 500,
+      "estimatedTripTotal": {
+        "amount": 500,
+        "currency": "EUR",
+        "explanation": "50 EUR per day for 5 days, raised to the published floor of 500 EUR, which applies whatever the length of stay. Computed from the published amount, not published as a total by Romania."
+      },
+      "applicableVariants": [
+        {
+          "condition": "nationals subject to the invitation procedure",
+          "basis": "per_day",
+          "amount": 30,
+          "currency": "EUR",
+          "note": "Made available by the inviting person or company rather than held by the traveller. The list in Order of the Minister of Foreign Affairs No 1743/2010 includes seven of the twelve passports this product covers: Bangladesh, Egypt, India, Indonesia, Morocco, Nigeria and Pakistan. applies_to_iso3 carries only those seven, not the whole order, because the other countries on it are outside this product's coverage.",
+          "whyItApplies": "Surfaced because Nigeria is on the list of nationalities this rule names."
+        }
+      ],
+      "qualitativeStatement": null,
+      "legalBasis": "Aliens Act No 194/2002.",
+      "notes": "Read the invitation procedure variant before using the headline figure for our passports. For most of the nationalities this product covers, Romania routes the requirement through an inviting party at 30 euros per day rather than 50 euros held by the traveller.",
+      "sourceYear": 2026,
+      "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/7130e21d-c1c8-41fd-9c83-b6fe312d4f5c_en",
+      "methodology": "Reference amounts for means of subsistence fixed by each national authority and notified to the European Commission, published as Annex 25 of the Practical Handbook for Border Guards, which the same document states is also Annex 18 of the Visa Code Handbook. The axis is destination: the amount is set by the state being travelled to, so it is not a figure about a passport and not a figure about a consulate location, and it must never be put on the same axis as the refusal datasets. The amounts are what a traveller must show to cross the external border, and the Commission publishes the same table to consulates assessing means of subsistence on a short stay visa application. Many states publish more than one amount for the same day depending on whether the traveller holds a host declaration, a prepaid booking or a hotel reservation. Where that happens the headline amount recorded here is the one required of a traveller paying their own way with no host declaration, because that is the case this product is asked about, and every other amount the state publishes is kept in variants. Amounts are recorded as published. They are never converted between currencies, never summed across separate requirements such as subsistence and accommodation, and never uprated for inflation.",
+      "thresholdCaveat": "A published reference amount is a minimum condition for entry, not a prediction of the decision. Showing the amount does not make a visa likely, and most refusals turn on purpose of travel, ties and credibility rather than on the balance shown. Where a state publishes no amount, the requirement is still real and is assessed case by case."
+    },
+    "reasons": [
+      "Your stated available funds exceed the published financial requirement, including the floor and daily amounts under the host invitation procedure.",
+      "You have a verified employment status and a host declaration for a conference, which provides a specific purpose of visit.",
+      "The baseline non-issue rate at the consulates in your application city is high, reflecting general strictness at this location.",
+      "Without stated past travel history, demonstrating strong ties and compliance depends entirely on your current job and economic documentation."
+    ],
+    "checklist": [
+      "Obtain the formal invitation and host declaration from the organizing body in Romania, detailing coverage or hosting arrangements.",
+      "Gather employment verification, including an official leave approval letter and recent pay slips.",
+      "Include recent original bank account statements demonstrating sufficient personal funds for your travel.",
+      "Provide flight itinerary and confirmed accommodation details or host accommodation confirmation for your five day stay."
+    ],
+    "baseRateCaveat": "This is a population base rate for a nationality group, not a personal probability. Do not render it as this applicant's odds.",
+    "baseRateReading": "Among applications made at consulates in Abuja, Nigeria, whatever passport the applicant held, out of 45,780 applications recorded in 2025, 20,931 were not issued, representing a base rate of 45.72 percent for Schengen area; this verdict evaluates your individual application against that context.",
+    "coverageNotes": [
+      {
+        "field": "refusalRate.nationality",
+        "message": "No nationality refusal rate is shown for the Schengen area. The Commission file has no applicant nationality column at all, so no such figure exists to retrieve. What is shown instead is a rate for where the application is made."
+      }
+    ]
+  }
+}

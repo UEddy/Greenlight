@@ -1,0 +1,84 @@
+{
+  "profile": {
+    "passportCountry": "India",
+    "passportStatus": "valid",
+    "residenceCountry": "India",
+    "residenceCity": "MUMBAI",
+    "destination": "United States",
+    "purpose": "business",
+    "tripLengthDays": 8,
+    "fundsAvailable": {
+      "amount": 14000,
+      "currency": "USD"
+    },
+    "hasAccommodationBooked": true,
+    "ties": {
+      "employmentStatus": "employed",
+      "ownsProperty": true,
+      "hasDependants": true
+    },
+    "travelHistory": {
+      "previousVisitsToDestination": 3,
+      "previousSchengenUkUsVisas": 5,
+      "previousRefusals": 0
+    }
+  },
+  "response": {
+    "verdict": "GO",
+    "confidence": "high",
+    "refusalRate": {
+      "nationality": {
+        "axis": "nationality",
+        "label": "Adjusted refusal rate for B visitor visas, per person, for holders of this passport",
+        "subject": "India passport holders applying for US B visitor visas",
+        "measure": "adjusted_refusal_rate",
+        "ratePercent": 22.04,
+        "numerator": null,
+        "denominator": null,
+        "sourceYear": 2025,
+        "sourceUrl": "https://travel.state.gov/content/dam/visas/Statistics/Non-Immigrant-Statistics/RefusalRates/FY25.pdf",
+        "methodology": "US Department of State Visa Waiver Program adjusted refusal rate for B visas, worldwide, by nationality. The Department identifies multiple applications from a unique applicant and omits all but the last action, so an applicant is counted only once each fiscal year and is assigned the status in which the year ended. Someone refused in April and issued in July counts only as an issuance. The published formula is refusals minus overcomes, divided by issuances plus refusals minus overcomes. The Department publishes the rate only, so numerator and denominator are null for this source. This is a per person end of year rate and is not comparable to the UK per decision rate without saying so.",
+        "comparableWithOtherAxis": false
+      },
+      "applicationLocation": null,
+      "axisNote": "These two fields answer different questions and are never comparable. The nationality figure is about the passport held. The application location figure is about the place where applications were made, and that source has no applicant nationality column at all, so it says nothing about any passport. Render them separately, each with what it counts, and never combine or average them."
+    },
+    "sourceYear": 2025,
+    "sourceUrl": "https://travel.state.gov/content/dam/visas/Statistics/Non-Immigrant-Statistics/RefusalRates/FY25.pdf",
+    "financialRequirement": {
+      "destination": "United States",
+      "state": null,
+      "published": false,
+      "basis": "none_published",
+      "amountStatus": "none_published",
+      "currency": null,
+      "perDayAmount": null,
+      "perEntryAmount": null,
+      "tripMinimumAmount": null,
+      "estimatedTripTotal": null,
+      "applicableVariants": [],
+      "qualitativeStatement": "United States publishes no set amount for this route. The official position is that funds must be adequate for this specific trip, judged case by case against the itinerary, the applicant's own means and their ties, rather than against a threshold. The Foreign Affairs Manual is cited rather than the visitor visa page on travel.state.gov. That page sits behind bot verification and could not be read, so it is not cited here: nothing in this dataset points at a page that was not actually retrieved. The manual is the instruction consular officers work from, so it is the better source in any case. Legal basis: INA 101(a)(15)(B) with 9 FAM 402.2-2(E), which requires that the arrangements made for defraying the expenses of the visit and return abroad be adequate to prevent the applicant obtaining unlawful employment in the United States..",
+      "legalBasis": "INA 101(a)(15)(B) with 9 FAM 402.2-2(E), which requires that the arrangements made for defraying the expenses of the visit and return abroad be adequate to prevent the applicant obtaining unlawful employment in the United States.",
+      "notes": "Checked directly: the B visa chapter of the Foreign Affairs Manual contains no dollar figure anywhere. Funds are weighed by the consular officer alongside the INA 214(b) presumption of immigrant intent. For medical treatment cases the manual asks for projected costs and evidence they can be met, which is a case specific test rather than a threshold.",
+      "sourceYear": 2026,
+      "sourceUrl": "https://fam.state.gov/fam/09FAM/09FAM040202.html",
+      "methodology": "The United States publishes no financial threshold for B visitor visas. The Foreign Affairs Manual at 9 FAM 402.2-2(E) requires that the arrangements the applicant has made for defraying the expenses of their visit and return abroad be adequate to prevent their obtaining unlawful employment in the United States. The B visa chapter states no dollar amount and no minimum bank balance anywhere in its text. Adequacy is judged by the consular officer case by case, alongside the INA 214(b) presumption that every applicant is an intending immigrant until they overcome it. Any dollar figure or minimum balance quoted elsewhere for B visas is not a published requirement, and this record states the absence rather than substituting one.",
+      "thresholdCaveat": "A published reference amount is a minimum condition for entry, not a prediction of the decision. Showing the amount does not make a visa likely, and most refusals turn on purpose of travel, ties and credibility rather than on the balance shown. Where a state publishes no amount, the requirement is still real and is assessed case by case."
+    },
+    "reasons": [
+      "Your profile shows a clean travel history with multiple prior visas and visits to the United States without any recorded refusals.",
+      "Strong ties to your home country are established through ongoing employment, property ownership, and family dependants.",
+      "Your proposed business trip is brief, and your available funds are well suited to an eight day stay."
+    ],
+    "checklist": [
+      "Prepare your current valid passport along with previous passports displaying your prior visas and entry stamps.",
+      "Obtain an official letter from your employer confirming your employment status, approved leave, and the business purpose of your trip.",
+      "Gather financial evidence, such as recent bank statements showing sufficient personal funds for your visit.",
+      "Collect documents proving ties to your home country, including property ownership papers and records concerning your dependants.",
+      "Carry details of your booked accommodation and an itinerary for your eight day trip."
+    ],
+    "baseRateCaveat": "This is a population base rate for a nationality group, not a personal probability. Do not render it as this applicant's odds.",
+    "baseRateReading": "Among India passport holders applying for US B visitor visas, the published figure for 2025 regarding travel to United States is 22.04 percent, which is a base rate for the group rather than your personal odds, and this verdict reads your profile against it.",
+    "coverageNotes": []
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "profile": {
+    "passportCountry": "Ghana",
+    "passportStatus": "valid",
+    "residenceCountry": "Ghana",
+    "residenceCity": "ACCRA",
+    "destination": "Schengen area",
+    "schengenState": "Spain",
+    "purpose": "conference",
+    "tripLengthDays": 7,
+    "fundsAvailable": {
+      "amount": 400,
+      "currency": "EUR"
+    },
+    "ties": {
+      "employmentStatus": "self_employed"
+    },
+    "travelHistory": {
+      "previousVisitsToDestination": 0,
+      "previousRefusals": 1
+    }
+  },
+  "response": {
+    "verdict": "ABORT",
+    "confidence": "high",
+    "refusalRate": {
+      "nationality": null,
+      "applicationLocation": {
+        "axis": "application_location",
+        "label": "Uniform visas not issued, out of applications made, at the consulates in this place",
+        "subject": "applications made at consulates in Accra, Ghana, whatever passport the applicant held",
+        "measure": "not_issued_share_of_applications",
+        "ratePercent": 46.06,
+        "numerator": 29354,
+        "denominator": 63725,
+        "sourceYear": 2025,
+        "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/56816949-e59f-442b-9091-5d03360bf860_en",
+        "methodology": "EU Commission Schengen visa statistics for consulates, compiled from returns made by the Schengen States under Visa Code Article 46 and Annex XII. The axis is application location, not nationality: this file has no applicant nationality column anywhere, so a record says what happened at the consulates in a city, not what happens to a given passport. A Nigerian applying in Dubai appears in the Dubai rows. The measure is uniform visas not issued divided by uniform visas applied for. Not issued is broader than refused: it includes withdrawn and inadmissible applications, so this rate runs above a true refusal rate and must not be labelled as one. Counts are applications, not people. Not comparable to the US per person adjusted rate or the UK per decision rate without saying so.",
+        "comparableWithOtherAxis": false
+      },
+      "axisNote": "These two fields answer different questions and are never comparable. The nationality figure is about the passport held. The application location figure is about the place where applications were made, and that source has no applicant nationality column at all, so it says nothing about any passport. Render them separately, each with what it counts, and never combine or average them."
+    },
+    "sourceYear": 2025,
+    "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/56816949-e59f-442b-9091-5d03360bf860_en",
+    "financialRequirement": {
+      "destination": "Schengen area",
+      "state": "Spain",
+      "published": true,
+      "basis": "per_day",
+      "amountStatus": "binding",
+      "currency": "EUR",
+      "perDayAmount": 121.1,
+      "perEntryAmount": null,
+      "tripMinimumAmount": 1098.9,
+      "estimatedTripTotal": {
+        "amount": 1098.9,
+        "currency": "EUR",
+        "explanation": "121.1 EUR per day for 7 days, raised to the published floor of 1098.9 EUR, which applies whatever the length of stay. Computed from the published amount, not published as a total by Spain."
+      },
+      "applicableVariants": [],
+      "qualitativeStatement": null,
+      "legalBasis": "Order PRE/1282/2007 of 10 May 2007. The daily amount is 10 percent of the gross national minimum wage and the floor is 90 percent of it, so both move when that wage moves.",
+      "notes": "The highest daily amount in the Schengen area by a wide margin, and the one most likely to decide a marginal case. The figure recorded is the ministry's, effective 1 January 2026, and differs from the Commission annex by one euro. See national_source.",
+      "sourceYear": 2026,
+      "sourceUrl": "https://home-affairs.ec.europa.eu/document/download/7130e21d-c1c8-41fd-9c83-b6fe312d4f5c_en",
+      "methodology": "Reference amounts for means of subsistence fixed by each national authority and notified to the European Commission, published as Annex 25 of the Practical Handbook for Border Guards, which the same document states is also Annex 18 of the Visa Code Handbook. The axis is destination: the amount is set by the state being travelled to, so it is not a figure about a passport and not a figure about a consulate location, and it must never be put on the same axis as the refusal datasets. The amounts are what a traveller must show to cross the external border, and the Commission publishes the same table to consulates assessing means of subsistence on a short stay visa application. Many states publish more than one amount for the same day depending on whether the traveller holds a host declaration, a prepaid booking or a hotel reservation. Where that happens the headline amount recorded here is the one required of a traveller paying their own way with no host declaration, because that is the case this product is asked about, and every other amount the state publishes is kept in variants. Amounts are recorded as published. They are never converted between currencies, never summed across separate requirements such as subsistence and accommodation, and never uprated for inflation.",
+      "thresholdCaveat": "A published reference amount is a minimum condition for entry, not a prediction of the decision. Showing the amount does not make a visa likely, and most refusals turn on purpose of travel, ties and credibility rather than on the balance shown. Where a state publishes no amount, the requirement is still real and is assessed case by case."
+    },
+    "reasons": [
+      "The funds you declared are well below the published minimum floor required by Spain.",
+      "A previous visa refusal increases the scrutiny on your file.",
+      "Self employment requires clear financial proof of ongoing business activity, which is difficult to establish when available funds fall short of requirements."
+    ],
+    "checklist": [
+      "Bank records showing liquid balances that meet the published financial floor for Spain.",
+      "Official invitation and registration documents for the conference.",
+      "Business registration, tax filings, and trade records establishing active self employment.",
+      "A statement clarifying the details of your previous refusal and showing what has changed.",
+      "Confirmed accommodation booking for the duration of stay."
+    ],
+    "baseRateCaveat": "This is a population base rate for a nationality group, not a personal probability. Do not render it as this applicant's odds.",
+    "baseRateReading": "Among applications made at consulates in Accra, Ghana, whatever passport the applicant held, the published figure for 2025 is 46.06 percent, with 29,354 out of 63,725 for Schengen area; this verdict reads your profile against that base rate.",
+    "coverageNotes": [
+      {
+        "field": "refusalRate.nationality",
+        "message": "No nationality refusal rate is shown for the Schengen area. The Commission file has no applicant nationality column at all, so no such figure exists to retrieve. What is shown instead is a rate for where the application is made."
+      }
+    ]
+  }
+}

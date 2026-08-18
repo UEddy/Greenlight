@@ -17,16 +17,12 @@ import {
   SUPPORTED_DESTINATIONS,
   dataset,
 } from "./dataset.js";
-import {
-  ClaudeModelClient,
-  ModelRefusedError,
-  ModelUnparseableError,
-  type ModelClient,
-} from "./model.js";
+import { ModelRefusedError, ModelUnparseableError, type ModelClient } from "./model.js";
+import { createModelClient } from "./provider.js";
 import { CoverageError } from "./retrieval.js";
 import { ProfileSchema } from "./types.js";
 
-export function createServer(model: ModelClient = new ClaudeModelClient()) {
+export function createServer(model: ModelClient = createModelClient()) {
   const app = express();
   app.use(express.json({ limit: "64kb" }));
 
