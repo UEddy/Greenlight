@@ -21,7 +21,7 @@ const CLEAN_OUTPUT: ModelOutput = {
   verdict: "MARGINAL",
   confidence: "medium",
   baseRateReading:
-    "The figure shown is a base rate for everyone holding this passport, not your personal odds, and this verdict reads your profile against it.",
+    "Among {{subject}}, the published figure for {{year}} is {{rate}}, which is a base rate for that whole group and not your personal odds; this verdict reads your profile against it.",
   reasons: [
     "Your employment and the conference invitation are the strongest parts of this application.",
     "Your savings are thin relative to the length of the trip, which is the weakest part.",
@@ -88,8 +88,11 @@ describe("the system prompt carries the prohibitions", () => {
     expect(SYSTEM_PROMPT).toMatch(/misrepresentation/i);
   });
 
-  it("forbids producing a number", () => {
-    expect(SYSTEM_PROMPT).toContain("YOU NEVER PRODUCE A NUMBER");
+  it("forbids writing any digit at all", () => {
+    expect(SYSTEM_PROMPT).toContain("YOU NEVER WRITE A DIGIT");
+    expect(SYSTEM_PROMPT).toContain("THE BASE RATE LINE USES TOKENS");
+    expect(SYSTEM_PROMPT).toContain("{{rate}}");
+    expect(SYSTEM_PROMPT).toContain("{{subject}}");
   });
 
   it("forbids merging the axes", () => {

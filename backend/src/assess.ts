@@ -9,8 +9,14 @@
  */
 
 import { dataset, COVERED_SCHENGEN_STATES } from "./dataset.js";
-import { guardModelOutput, allowedFigures, type Violation } from "./guard.js";
+import { guardModelOutput, allowedFigures, checkFigures, type Violation } from "./guard.js";
 import type { ModelClient } from "./model.js";
+import {
+  buildPlaceholders,
+  checkPlaceholders,
+  describeAvailable,
+  substitute,
+} from "./placeholders.js";
 import { SYSTEM_PROMPT, renderContext, renderUserMessage } from "./prompt.js";
 import { retrieve, type Retrieved } from "./retrieval.js";
 import type { AssessResponse, ModelOutput, Profile } from "./types.js";
@@ -65,6 +71,7 @@ export async function assess(
 
   const context = renderContext(profile, retrieved);
   const allowed = allowedFigures(context);
+  const placeholders = buildPlaceholders(profile, retrieved);
   const adviceContext = {
     declaredDestination: profile.destination,
     declaredSchengenState: profile.schengenState,
@@ -77,12 +84,26 @@ export async function assess(
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     const output = await model.assess(SYSTEM_PROMPT, userMessage);
     const violations = guardModelOutput(
-      modelStrings(output),
-      allowed,
+      output.baseRateReading,
+      [...output.reasons, ...output.checklist],
       adviceContext,
+      (text) => checkPlaceholders(text, placeholders),
     );
     if (violations.length === 0) {
-      return assemble(profile, retrieved, output);
+      const baseRateReading = substitute(output.baseRateReading, placeholders);
+
+      // Check this service's own substitution. Every figure the finished line
+      // carries must trace to the retrieved records; if one does not, the fault
+      // is in buildPlaceholders, not in the model, and it must not ship.
+      const introduced = checkFigures(baseRateReading, allowed);
+      if (introduced.length > 0) {
+        throw new Error(
+          `Substitution produced a figure that is not in the retrieved context: ` +
+            introduced.map((v) => v.detail).join("; "),
+        );
+      }
+
+      return assemble(profile, retrieved, output, baseRateReading);
     }
     lastViolations = violations;
 
@@ -95,20 +116,19 @@ export async function assess(
       violations
         .map((v) => `- ${v.rule}: ${v.detail} Offending text: "${v.excerpt}"`)
         .join("\n") +
-      `\nWrite no digits at all. Refer to figures by name, and never suggest applying anywhere other than the declared destination.`;
+      `\nWrite no digits anywhere. In the base rate line use the tokens and nothing else. ` +
+      `${describeAvailable(placeholders)} ` +
+      `Never suggest applying anywhere other than the declared destination.`;
   }
 
   throw new ModelOutputRejectedError(lastViolations, retrieved);
-}
-
-function modelStrings(output: ModelOutput): string[] {
-  return [output.baseRateReading, ...output.reasons, ...output.checklist];
 }
 
 function assemble(
   profile: Profile,
   retrieved: Retrieved,
   output: ModelOutput,
+  baseRateReading: string,
 ): AssessResponse {
   const primary = retrieved.primarySource;
   if (!primary) {
@@ -131,7 +151,7 @@ function assemble(
     reasons: output.reasons,
     checklist: output.checklist,
     baseRateCaveat: dataset.baseRateCaveat,
-    baseRateReading: output.baseRateReading,
+    baseRateReading,
     coverageNotes: retrieved.coverageNotes,
   };
 }

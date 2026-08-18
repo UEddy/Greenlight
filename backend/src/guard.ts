@@ -14,9 +14,43 @@
  */
 
 export interface Violation {
-  rule: "figure_not_in_context" | "forum_shopping" | "misrepresentation";
+  rule:
+    | "digit_in_prose"
+    | "figure_not_in_context"
+    | "placeholder_unknown"
+    | "placeholder_unavailable"
+    | "placeholder_missing"
+    | "forum_shopping"
+    | "misrepresentation";
   detail: string;
   excerpt: string;
+}
+
+/**
+ * Rejects any digit in model prose.
+ *
+ * This is the primary figure guard, and it replaced an allowlist check that
+ * asked the wrong question. The allowlist asked whether a number appeared in
+ * the retrieved context. That catches invention and misses misattribution: a
+ * figure that is genuinely in the context can still be pinned to the wrong
+ * label, the wrong axis or the wrong destination, and it arrives looking
+ * sourced. The only sentence that cannot do that is one with no figures in it,
+ * so the model writes none. Where the base rate line genuinely needs one, it
+ * uses a token and code fills it. See placeholders.ts.
+ */
+export function checkNoDigits(text: string): Violation[] {
+  const violations: Violation[] = [];
+  for (const match of text.matchAll(/\d+(?:[.,]\d+)*/g)) {
+    const start = Math.max(0, match.index - 60);
+    violations.push({
+      rule: "digit_in_prose",
+      detail:
+        `The figure ${match[0]} was written by the model. Model prose carries no digits: ` +
+        `name the field in words, or use a token in the base rate line.`,
+      excerpt: text.slice(start, match.index + match[0].length + 60).trim(),
+    });
+  }
+  return violations;
 }
 
 /** Matches a run of digits with optional grouping and decimal parts. */
@@ -60,12 +94,12 @@ export function allowedFigures(contextText: string): Set<string> {
 }
 
 /**
- * Rejects any figure the model was not shown.
+ * Rejects any figure that was not in the retrieved context.
  *
- * Note what this does not do: it does not permit a number merely because it is
- * small, round or looks like a year. If it was not in the context, it was
- * invented, and an invented number is the exact failure this product cannot
- * ship.
+ * No longer used on model prose, which carries no digits at all. It runs on
+ * the base rate line *after* substitution, where it checks this service's own
+ * work: every figure the finished line contains must trace to the retrieved
+ * records. If that ever fails, the bug is here rather than in the model.
  */
 export function checkFigures(text: string, allowed: Set<string>): Violation[] {
   const violations: Violation[] = [];
@@ -224,16 +258,39 @@ function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** Runs every guard over the model's prose fields. */
+/**
+ * Runs every guard over the model's prose.
+ *
+ * `baseRateLine` is separated from the rest because it is the one field
+ * allowed to carry tokens. Everything else is plain prose with no figures and
+ * no tokens, so a token appearing in a reason or a checklist item is itself a
+ * violation: those fields have nothing to substitute from.
+ */
 export function guardModelOutput(
-  strings: string[],
-  allowed: Set<string>,
+  baseRateLine: string,
+  otherStrings: string[],
   adviceContext: AdviceGuardContext,
+  placeholderCheck: (text: string) => Violation[],
 ): Violation[] {
   const violations: Violation[] = [];
-  for (const text of strings) {
-    violations.push(...checkFigures(text, allowed));
+
+  violations.push(...checkNoDigits(baseRateLine));
+  violations.push(...placeholderCheck(baseRateLine));
+  violations.push(...checkAdvice(baseRateLine, adviceContext));
+
+  for (const text of otherStrings) {
+    violations.push(...checkNoDigits(text));
     violations.push(...checkAdvice(text, adviceContext));
+    for (const match of text.matchAll(/\{\{\s*([a-zA-Z]+)\s*\}\}/g)) {
+      violations.push({
+        rule: "placeholder_unknown",
+        detail:
+          `Tokens are only filled in the base rate line. ${match[0]} in a reason or a ` +
+          `checklist item would reach the user unsubstituted.`,
+        excerpt: text.slice(0, 120),
+      });
+    }
   }
+
   return violations;
 }

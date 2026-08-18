@@ -8,7 +8,7 @@ const OUTPUT: ModelOutput = {
   verdict: "ABORT",
   confidence: "high",
   baseRateReading:
-    "The figure shown is a base rate for everyone holding this passport, not your personal odds, and this verdict reads your profile against it.",
+    "Among {{subject}}, the published figure for {{year}} is {{rate}}, which is a base rate for that whole group and not your personal odds; this verdict reads your profile against it.",
   reasons: [
     "Your savings are well below what this destination publishes for a trip of this length.",
     "You have no prior travel to weigh against the base rate, which leaves little to argue with.",
@@ -143,7 +143,7 @@ describe("POST /assess", () => {
 
     expect(res.status).toBe(502);
     expect(body.error).toBe("model_output_rejected");
-    expect(body.violations[0].rule).toBe("figure_not_in_context");
+    expect(body.violations[0].rule).toBe("digit_in_prose");
     // The retrieved facts are still sourced and still true.
     expect(body.retrieved.refusalRate.nationality.ratePercent).toBeGreaterThan(0);
     expect(body.verdict).toBeUndefined();

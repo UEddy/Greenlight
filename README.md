@@ -219,7 +219,7 @@ Most figures rest on the Commission annex, which is the states' own notified amo
 ```bash
 cd backend
 npm install
-npm test          # 65 tests, offline, no API key needed
+npm test          # 80 tests, offline, no API key needed
 npm run typecheck
 npm run dev       # POST /assess on :8787
 ```
@@ -228,7 +228,11 @@ npm run dev       # POST /assess on :8787
 
 **Every number is retrieved in code. The model never produces one.** Retrieval runs first and reads only the curated JSON in `data/processed/`. The model is then given those records and asked for four things: a verdict, a confidence, one plain line reading the profile against the base rate, and the reasons and checklist. It returns no numeric field at all, and the response is assembled from the retrieved records. The model's contribution is judgement and prose.
 
-That is enforced rather than requested. The context block the model reads is rendered once, and the set of figures it is allowed to echo is extracted from those exact bytes, so the allowlist cannot drift from what the model saw. Any digit in the response that is not in the retrieved context fails the response. It is re-asked once with the offending text quoted back, and refused after that. A refused answer returns HTTP 502 **with the retrieved records attached and no verdict**, because the facts are still sourced and still true; it is only the judgement that failed its checks.
+That is enforced rather than requested, and the enforcement is a digit ban rather than an allowlist. **The model writes no digits at all, anywhere.** An earlier version checked each figure against the numbers present in the retrieved context, which catches invention and misses misattribution: a figure that is genuinely in the context can still be pinned to the wrong label. For a Nigerian profile assessed against the Schengen area, the application location figure is legitimately in context, so "the UK refusal rate for your passport is 47.74 percent" passed a presence check while being false on three counts, and would have rendered with a source and a year beside it. The only sentence that cannot do that is one containing no figures.
+
+Where a figure genuinely belongs, the model leaves a slot. `baseRateReading` is written with tokens, `{{rate}}`, `{{subject}}`, `{{numerator}}`, `{{denominator}}`, `{{year}}` and `{{destination}}`, which code fills from the retrieved record after the answer passes its checks. `{{rate}}` and `{{subject}}` are both required, and the second one is the point: substituting the value alone leaves the model free to write the label, which reproduces the same false sentence. The subject comes from the record too, so the figure and the thing it describes are bound together by code. A token the source cannot fill is rejected rather than left blank, so a request against the US, which publishes a rate and no counts, cannot ask for `{{numerator}}`. Tokens are only substituted in the base rate line, so one appearing in a reason is rejected rather than reaching a user as raw braces. After substitution the finished line is checked back against the retrieved context, which audits this service's own work rather than the model's.
+
+Any digit in any field fails the response. It is re-asked once with the offending text quoted back, and refused after that. A refused answer returns HTTP 502 **with the retrieved records attached and no verdict**, because the facts are still sourced and still true; it is only the judgement that failed its checks.
 
 **Never recommend applying somewhere else.** A Schengen application belongs to the state of the main destination. Suggesting a different state, consulate or city because a rate or a threshold looks lower there is advice that gets people refused, and it shades into misrepresentation, which carries multi year bans. The prohibition is rule 4 of the system prompt and it is checked again on the way out: the guard rejects comparative phrasing about rates or requirements, and rejects naming any other jurisdiction in a sentence that also contains a routing verb. Naming another state as a plain fact is fine, because the variation is real and the interface may show it. Turning it into a route is not. Tests cover the direct suggestion, the soft hint, the version framed as a lower financial requirement, and the version framed as a lower refusal rate.
 

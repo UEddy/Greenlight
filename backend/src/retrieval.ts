@@ -24,6 +24,12 @@ import type {
 export interface Retrieved {
   nationalityRate: RateFigure | null;
   applicationLocationRate: RateFigure | null;
+  /**
+   * The one figure the verdict is read against, and the only record the base
+   * rate line's placeholders resolve from. Exactly one axis is ever populated
+   * for a given destination, so this is a selection and never a merge.
+   */
+  primaryRate: RateFigure | null;
   financial: FinancialRequirement;
   coverageNotes: CoverageNote[];
   /** Whichever refusal source actually backs the verdict, for the top level. */
@@ -42,6 +48,19 @@ export class CoverageError extends Error {
 
 function normalise(value: string): string {
   return value.trim().toLowerCase();
+}
+
+/**
+ * The source lists consulate cities in capitals. That is fine in a table and
+ * wrong inside a sentence, and the subject string is read aloud on the card,
+ * so it is cased for display here. The underlying record is untouched.
+ */
+function titleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => (word.length === 0 ? word : word[0]!.toUpperCase() + word.slice(1)))
+    .join(" ");
 }
 
 /** Nationality axis, UK. Carries a real numerator and denominator. */
@@ -76,7 +95,7 @@ function usRate(profile: Profile): RateFigure | null {
     axis: "nationality",
     label:
       "Adjusted refusal rate for B visitor visas, per person, for holders of this passport",
-    subject: `${record.nationality} passport holders applying for a US ${record.visa_group}`,
+    subject: `${record.nationality} passport holders applying for US ${record.visa_group}`,
     measure: record.measure,
     ratePercent: record.refusal_rate_percent,
     numerator: record.numerator,
@@ -140,7 +159,7 @@ function schengenLocationRate(profile: Profile): {
 
   const where =
     record.level === "consulate_city"
-      ? `consulates in ${record.consulate_city}, ${record.location_country}`
+      ? `consulates in ${titleCase(record.consulate_city!)}, ${record.location_country}`
       : `all Schengen consulates in ${record.location_country}`;
 
   return {
@@ -454,6 +473,7 @@ export function retrieve(profile: Profile): Retrieved {
   return {
     nationalityRate,
     applicationLocationRate,
+    primaryRate: primary,
     financial: buildFinancial(financialRecord, profile),
     coverageNotes,
     primarySource: primary
