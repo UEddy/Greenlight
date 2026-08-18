@@ -263,6 +263,28 @@ If the backend is ever missing or unresolvable, the build fails rather than the 
 
 **Nothing reads a `.env` file in production.** `backend/src/env.ts` is the only code that touches one, and it returns early when `NODE_ENV` is `production`, which Vercel sets. The keys arrive as real environment variables. The guard makes that true by construction rather than true because the file happens to be absent.
 
+### Native binaries and the lockfile
+
+The lockfile is committed and it is generated on Windows, which npm handles badly for packages that ship a compiled binary per platform. npm records only the binary matching the machine that ran the install, so a Linux build gets a tree with no binary to load and fails at the first CSS file with `Cannot find module '../lightningcss.linux-x64-gnu'`.
+
+Three packages on the deploy path have this shape: `lightningcss` and `@tailwindcss/oxide`, both pulled in by Tailwind, and `@next/swc`. The Linux builds are declared as `optionalDependencies` of the frontend, pinned to the exact version of their parent, because a native binary and its JavaScript package have to be the same version:
+
+```json
+"optionalDependencies": {
+  "@next/swc-linux-x64-gnu": "16.3.1",
+  "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
+  "lightningcss-linux-x64-gnu": "1.32.0"
+}
+```
+
+Declaring them puts real entries in the lockfile tree, with a resolved URL and an integrity hash, marked `os: ["linux"]` and optional. A Windows install skips downloading them and a Linux install fetches them. Nothing is disabled and Tailwind still runs its normal engine.
+
+The alternative, regenerating the lockfile under a platform override with `npm install --os=linux`, was rejected: it rebuilds the tree *for* Linux and drops the Windows entries, so the next install on a Windows machine puts them back and removes the Linux ones. That ping pong would break a build every time the lockfile was touched from the other platform. Declaring the dependencies is stable in both directions.
+
+**When upgrading Tailwind or Next, bump these pins in the same commit.** They are exact versions and they will silently drift otherwise. A mismatch does not fail on Windows, where these are never loaded, so it will show up as a failed deploy rather than a failed local build.
+
+**Residual risk.** This covers linux x64 with glibc, which is what Vercel builds on. An arm64 builder or a musl based image would need its own entries, one line each in the same place. `@rolldown/binding-linux-x64-gnu`, used by vitest in the backend, has the same gap and is deliberately not fixed here, because the backend is not deployed; it would matter only if `npm test` were run on Linux CI.
+
 ### The monorepo path problem, and how it is solved
 
 The likely snag in this layout is a path that resolves locally and vanishes inside a serverless bundle. Three places had one, and all three are now static imports rather than filesystem reads:

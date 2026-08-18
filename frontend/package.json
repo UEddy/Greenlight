@@ -32,5 +32,10 @@
     "react-dom": "^19.2.8",
     "viem": "^2.55.18",
     "wagmi": "^3.7.6"
+  },
+  "optionalDependencies": {
+    "@next/swc-linux-x64-gnu": "16.3.1",
+    "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
+    "lightningcss-linux-x64-gnu": "1.32.0"
   }
 }
