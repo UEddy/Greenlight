@@ -8,10 +8,8 @@
   },
   "scripts": {
     "test": "vitest run --exclude '**/live-model.test.ts' --exclude '**/node_modules/**'",
-    "build": "tsc",
     "typecheck": "tsc --noEmit",
     "dev": "tsx watch src/server.ts",
-    "start": "node dist/src/server.js",
     "test:live": "vitest run test/live-model.test.ts"
   },
   "keywords": [],
@@ -31,5 +29,13 @@
     "tsx": "^4.23.12",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./assess": "./src/assess.ts",
+    "./provider": "./src/provider.ts",
+    "./types": "./src/types.ts",
+    "./retrieval": "./src/retrieval.ts",
+    "./model": "./src/model.ts"
   }
 }

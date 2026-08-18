@@ -9,18 +9,18 @@
 
 import express from "express";
 import { ZodError } from "zod";
-import { assess, ModelOutputRejectedError } from "./assess.js";
+import { assess, ModelOutputRejectedError } from "./assess";
 import {
   COVERED_APPLICATION_LOCATIONS,
   COVERED_NATIONALITIES,
   COVERED_SCHENGEN_STATES,
   SUPPORTED_DESTINATIONS,
   dataset,
-} from "./dataset.js";
-import { ModelRefusedError, ModelUnparseableError, type ModelClient } from "./model.js";
-import { createModelClient } from "./provider.js";
-import { CoverageError } from "./retrieval.js";
-import { ProfileSchema } from "./types.js";
+} from "./dataset";
+import { ModelRefusedError, ModelUnparseableError, type ModelClient } from "./model";
+import { createModelClient } from "./provider";
+import { CoverageError } from "./retrieval";
+import { ProfileSchema } from "./types";
 
 export function createServer(model: ModelClient = createModelClient()) {
   const app = express();

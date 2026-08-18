@@ -1,8 +1,8 @@
 import type { Server } from "node:http";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createServer } from "../src/server.js";
-import type { ModelClient } from "../src/model.js";
-import type { ModelOutput } from "../src/types.js";
+import { createServer } from "../src/server";
+import type { ModelClient } from "../src/model";
+import type { ModelOutput } from "../src/types";
 
 const OUTPUT: ModelOutput = {
   verdict: "ABORT",

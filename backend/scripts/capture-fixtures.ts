@@ -17,14 +17,14 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { assess, ModelOutputRejectedError } from "../src/assess.js";
-import { guardModelOutput } from "../src/guard.js";
-import { checkPlaceholders, buildPlaceholders } from "../src/placeholders.js";
-import { SYSTEM_PROMPT, renderUserMessage } from "../src/prompt.js";
-import { createModelClient, detectProvider, describeProvider } from "../src/provider.js";
-import { retrieve } from "../src/retrieval.js";
-import { COVERED_SCHENGEN_STATES } from "../src/dataset.js";
-import { ProfileSchema, type ModelOutput, type Profile } from "../src/types.js";
+import { assess, ModelOutputRejectedError } from "../src/assess";
+import { guardModelOutput } from "../src/guard";
+import { checkPlaceholders, buildPlaceholders } from "../src/placeholders";
+import { SYSTEM_PROMPT, renderUserMessage } from "../src/prompt";
+import { createModelClient, detectProvider, describeProvider } from "../src/provider";
+import { retrieve } from "../src/retrieval";
+import { COVERED_SCHENGEN_STATES } from "../src/dataset";
+import { ProfileSchema, type ModelOutput, type Profile } from "../src/types";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_DIR = join(here, "..", "test", "fixtures");

@@ -1,0 +1,12 @@
+{
+  "name": "greenlight",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "build": "npm run build --workspace greenlight-frontend",
+    "dev": "npm run dev --workspace greenlight-frontend",
+    "test": "npm test --workspace greenlight-backend",
+    "typecheck": "npm run typecheck --workspace greenlight-backend && npm run typecheck --workspace greenlight-frontend"
+  }
+}

@@ -7,9 +7,9 @@
  * because a prompt is a request and a guard is a guarantee.
  */
 
-import { buildPlaceholders, describeAvailable } from "./placeholders.js";
-import type { Retrieved } from "./retrieval.js";
-import type { Profile } from "./types.js";
+import { buildPlaceholders, describeAvailable } from "./placeholders";
+import type { Retrieved } from "./retrieval";
+import type { Profile } from "./types";
 
 export const SYSTEM_PROMPT = `You are the assessment voice of GreenLight, a tool for people holding weak passports who are trying to attend events abroad. You tell them the truth about their odds, including when the truth is that they should save the application fee.
 

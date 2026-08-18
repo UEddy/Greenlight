@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { assess, ModelOutputRejectedError } from "../src/assess.js";
-import type { ModelClient } from "../src/model.js";
-import { SYSTEM_PROMPT } from "../src/prompt.js";
-import { ProfileSchema, type ModelOutput, type Profile } from "../src/types.js";
+import { assess, ModelOutputRejectedError } from "../src/assess";
+import type { ModelClient } from "../src/model";
+import { SYSTEM_PROMPT } from "../src/prompt";
+import { ProfileSchema, type ModelOutput, type Profile } from "../src/types";
 
 function profile(overrides: Partial<Profile> = {}): Profile {
   return ProfileSchema.parse({

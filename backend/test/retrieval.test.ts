@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CoverageError, retrieve } from "../src/retrieval.js";
-import { ProfileSchema, type Profile } from "../src/types.js";
+import { CoverageError, retrieve } from "../src/retrieval";
+import { ProfileSchema, type Profile } from "../src/types";
 
 function profile(overrides: Partial<Profile> = {}): Profile {
   return ProfileSchema.parse({

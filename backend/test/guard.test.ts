@@ -5,8 +5,8 @@ import {
   checkFigures,
   numericReadings,
   type AdviceGuardContext,
-} from "../src/guard.js";
-import { COVERED_SCHENGEN_STATES } from "../src/dataset.js";
+} from "../src/guard";
+import { COVERED_SCHENGEN_STATES } from "../src/dataset";
 
 const CONTEXT = `
 Subject: Nigeria passport holders applying for a UK Visitor visa

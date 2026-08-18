@@ -11,17 +11,17 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { assess, ModelOutputRejectedError } from "../src/assess.js";
-import { allowedFigures, checkFigures, checkNoDigits } from "../src/guard.js";
-import type { ModelClient } from "../src/model.js";
+import { assess, ModelOutputRejectedError } from "../src/assess";
+import { allowedFigures, checkFigures, checkNoDigits } from "../src/guard";
+import type { ModelClient } from "../src/model";
 import {
   buildPlaceholders,
   checkPlaceholders,
   substitute,
-} from "../src/placeholders.js";
-import { renderContext } from "../src/prompt.js";
-import { retrieve } from "../src/retrieval.js";
-import { ProfileSchema, type ModelOutput, type Profile } from "../src/types.js";
+} from "../src/placeholders";
+import { renderContext } from "../src/prompt";
+import { retrieve } from "../src/retrieval";
+import { ProfileSchema, type ModelOutput, type Profile } from "../src/types";
 
 function profile(overrides: Partial<Profile> = {}): Profile {
   return ProfileSchema.parse({

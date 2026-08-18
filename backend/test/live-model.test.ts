@@ -12,13 +12,13 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { assess } from "../src/assess.js";
-import { createModelClient, detectProvider, describeProvider } from "../src/provider.js";
-import { checkAdvice, checkFigures, allowedFigures } from "../src/guard.js";
-import { renderContext } from "../src/prompt.js";
-import { retrieve } from "../src/retrieval.js";
-import { COVERED_SCHENGEN_STATES } from "../src/dataset.js";
-import { ProfileSchema } from "../src/types.js";
+import { assess } from "../src/assess";
+import { createModelClient, detectProvider, describeProvider } from "../src/provider";
+import { checkAdvice, checkFigures, allowedFigures } from "../src/guard";
+import { renderContext } from "../src/prompt";
+import { retrieve } from "../src/retrieval";
+import { COVERED_SCHENGEN_STATES } from "../src/dataset";
+import { ProfileSchema } from "../src/types";
 
 /**
  * Opt in explicitly, with GREENLIGHT_LIVE=1.

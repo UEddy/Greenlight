@@ -8,9 +8,9 @@
  *      free tier and the one this project runs on today.
  */
 
-import { loadEnv } from "./env.js";
-import { DEFAULT_GEMINI_MODEL, GeminiModelClient } from "./gemini.js";
-import { ClaudeModelClient, type ModelClient } from "./model.js";
+import { loadEnv } from "./env";
+import { DEFAULT_GEMINI_MODEL, GeminiModelClient } from "./gemini";
+import { ClaudeModelClient, type ModelClient } from "./model";
 
 export type ProviderName = "gemini" | "claude";
 

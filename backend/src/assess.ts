@@ -8,18 +8,18 @@
  * from the model.
  */
 
-import { dataset, COVERED_SCHENGEN_STATES } from "./dataset.js";
-import { guardModelOutput, allowedFigures, checkFigures, type Violation } from "./guard.js";
-import type { ModelClient } from "./model.js";
+import { dataset, COVERED_SCHENGEN_STATES } from "./dataset";
+import { guardModelOutput, allowedFigures, checkFigures, type Violation } from "./guard";
+import type { ModelClient } from "./model";
 import {
   buildPlaceholders,
   checkPlaceholders,
   describeAvailable,
   substitute,
-} from "./placeholders.js";
-import { SYSTEM_PROMPT, renderContext, renderUserMessage } from "./prompt.js";
-import { retrieve, type Retrieved } from "./retrieval.js";
-import type { AssessResponse, ModelOutput, Profile } from "./types.js";
+} from "./placeholders";
+import { SYSTEM_PROMPT, renderContext, renderUserMessage } from "./prompt";
+import { retrieve, type Retrieved } from "./retrieval";
+import type { AssessResponse, ModelOutput, Profile } from "./types";
 
 const AXIS_NOTE =
   "These two fields answer different questions and are never comparable. " +

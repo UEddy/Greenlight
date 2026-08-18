@@ -15,7 +15,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { ModelOutputSchema, type ModelOutput } from "./types.js";
+import { ModelOutputSchema, type ModelOutput } from "./types";
 
 export const MODEL_ID = process.env["GREENLIGHT_MODEL"] ?? "claude-opus-5";
 

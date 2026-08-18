@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectGeminiKeys } from "../src/gemini.js";
+import { collectGeminiKeys } from "../src/gemini";
 
 /**
  * Key selection, tested without touching the network.

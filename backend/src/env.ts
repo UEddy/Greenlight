@@ -18,5 +18,12 @@ let loaded = false;
 export function loadEnv(): void {
   if (loaded) return;
   loaded = true;
+
+  // Never in production. On Vercel the keys arrive as real environment
+  // variables and there is no .env file to find, so this would be a pointless
+  // filesystem probe at best. Guarding on NODE_ENV makes the claim true by
+  // construction rather than true by the file happening to be absent.
+  if (process.env["NODE_ENV"] === "production") return;
+
   if (existsSync(ENV_PATH)) process.loadEnvFile(ENV_PATH);
 }

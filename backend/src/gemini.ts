@@ -13,8 +13,8 @@
 
 import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
-import { ModelUnparseableError, type ModelClient } from "./model.js";
-import { ModelOutputSchema, type ModelOutput } from "./types.js";
+import { ModelUnparseableError, type ModelClient } from "./model";
+import { ModelOutputSchema, type ModelOutput } from "./types";
 
 /**
  * Override with GEMINI_MODEL.

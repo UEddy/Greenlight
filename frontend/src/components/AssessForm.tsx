@@ -27,8 +27,6 @@ import type {
  * verdict colours appear on this screen.
  */
 
-const API_BASE = process.env["NEXT_PUBLIC_API_BASE"] ?? "http://localhost:8787";
-
 const CARD =
   "border border-[var(--color-ink-line)] bg-[var(--color-ink-raised)] p-5 sm:p-6";
 const FIELD =
@@ -115,7 +113,7 @@ export function AssessForm() {
     };
 
     try {
-      const response = await fetch(`${API_BASE}/assess`, {
+      const response = await fetch("/api/assess", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(profile),
@@ -135,7 +133,7 @@ export function AssessForm() {
     } catch {
       setOutcome({
         kind: "unreachable",
-        message: `Could not reach the assessment service at ${API_BASE}. Start the backend with npm run dev, or set NEXT_PUBLIC_API_BASE.`,
+        message: "Could not reach the assessment route. If you are running locally, check the dev server is up.",
       });
     } finally {
       setPending(false);

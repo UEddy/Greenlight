@@ -12,14 +12,14 @@ import {
   type FinancialRecord,
   type FinancialVariant,
   type SchengenRecord,
-} from "./dataset.js";
+} from "./dataset";
 import type {
   AppliedVariant,
   CoverageNote,
   FinancialRequirement,
   Profile,
   RateFigure,
-} from "./types.js";
+} from "./types";
 
 export interface Retrieved {
   nationalityRate: RateFigure | null;

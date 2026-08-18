@@ -12,11 +12,11 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { COVERED_SCHENGEN_STATES } from "../src/dataset.js";
-import { allowedFigures, checkAdvice, checkFigures, checkNoDigits } from "../src/guard.js";
-import { renderContext } from "../src/prompt.js";
-import { retrieve } from "../src/retrieval.js";
-import { ProfileSchema, type AssessResponse } from "../src/types.js";
+import { COVERED_SCHENGEN_STATES } from "../src/dataset";
+import { allowedFigures, checkAdvice, checkFigures, checkNoDigits } from "../src/guard";
+import { renderContext } from "../src/prompt";
+import { retrieve } from "../src/retrieval";
+import { ProfileSchema, type AssessResponse } from "../src/types";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_DIR = join(here, "fixtures");

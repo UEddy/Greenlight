@@ -16,9 +16,9 @@
  * to, and the line is required to carry both.
  */
 
-import type { Violation } from "./guard.js";
-import type { Retrieved } from "./retrieval.js";
-import type { Profile } from "./types.js";
+import type { Violation } from "./guard";
+import type { Retrieved } from "./retrieval";
+import type { Profile } from "./types";
 
 /** Matches {{name}}, tolerating inner spaces. */
 export const PLACEHOLDER_PATTERN = /\{\{\s*([a-zA-Z]+)\s*\}\}/g;

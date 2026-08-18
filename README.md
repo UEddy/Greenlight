@@ -214,15 +214,58 @@ Most figures rest on the Commission annex, which is the states' own notified amo
 
 `data/manifest.json` records the direct download URL, landing page URL, format, retrieval date, byte size and checksum for every source. The UK download path contains a hashed segment that changes on republish, which is why the landing page URL is recorded alongside it.
 
-## Backend
+## Running it
+
+One npm workspace, two packages, one deployable app.
 
 ```bash
-cd backend
-npm install
-npm test          # 116 tests, offline, never calls the model API
-npm run typecheck
-npm run dev       # POST /assess on :8787
+npm install            # at the repo root, links both workspaces
+npm run dev            # the whole app on :3000
+npm test               # 116 backend tests, offline, never calls the model API
+npm run typecheck      # both packages
 ```
+
+`backend/` stays a real package with its own tests and its own Express server for local work (`npm run dev --workspace greenlight-backend`, on :8787). Nothing deploys from it. The deployed app imports `assess` from it directly.
+
+## Deploying to Vercel
+
+The frontend and the backend ship as a single Vercel project. `frontend/src/app/api/assess/route.ts` imports `assess` from the `greenlight-backend` workspace package and does nothing but validate the request and map the errors that function already throws onto status codes. There is no second copy of the retrieval, the prompt, the guards or the assembly, so the deployed route and the 116 tests exercise one implementation.
+
+**Project settings**
+
+| Setting | Value |
+| --- | --- |
+| Framework preset | Next.js |
+| Root directory | `frontend` |
+| Include files outside the root directory | on, this is a workspace and the backend sits beside it |
+| Build command | leave as the default, `next build` |
+| Install command | leave as the default, npm installs the workspace root |
+| Output directory | leave as the default |
+| Node version | 22 or later |
+
+**Environment variables**
+
+| Name | Required | Notes |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | yes | Google AI Studio key. Without it the pages still render and `/api/assess` returns a 500 saying no provider is configured. |
+| `GEMINI_API_KEY_BACKUP` | recommended | A key from a second project. A 429 fails over to it immediately. |
+| `GEMINI_MODEL` | no | Defaults to `gemini-3.6-flash`. |
+| `GREENLIGHT_PROVIDER` | no | `gemini` or `claude`. Unset means whichever key is present, Gemini first. |
+| `ANTHROPIC_API_KEY` | no | Only if you set `GREENLIGHT_PROVIDER=claude`. |
+
+**Nothing reads a `.env` file in production.** `backend/src/env.ts` is the only code that touches one, and it returns early when `NODE_ENV` is `production`, which Vercel sets. The keys arrive as real environment variables. The guard makes that true by construction rather than true because the file happens to be absent.
+
+### The monorepo path problem, and how it is solved
+
+The likely snag in this layout is a path that resolves locally and vanishes inside a serverless bundle. Three places had one, and all three are now static imports rather than filesystem reads:
+
+- `backend/src/dataset.ts` read `data/processed/*.json` through a path built from `import.meta.url`.
+- `frontend/src/lib/fixtures.ts` walked `backend/test/fixtures` with `readdirSync` from `process.cwd()`.
+- `backend/src/env.ts` probed for a `.env`, now skipped in production.
+
+Reading a file at runtime asks the bundler to have traced a directory it has no reason to know about, and fails at request time in production while passing every local check. A static import puts the data in the module graph instead, so it either builds or fails at build time, and it can never be missing when a request arrives. All four datasets and five fixtures together are under a megabyte, which is nothing to bundle. The landing page in particular cannot deploy in a state where its verdict card has no data to render.
+
+One consequence worth knowing: the backend now uses `moduleResolution: "bundler"` and extensionless relative imports, because TypeScript's NodeNext convention of importing `./dataset.js` from `dataset.ts` is not something a bundler resolves back to the source. That is why `backend` no longer has `build` and `start` scripts: `tsc` there can no longer emit runnable Node ESM, and it does not need to, since the deploy target is the Next route and local work runs through `tsx`.
 
 `POST /assess` takes a traveller profile and returns the verdict card. `GET /coverage` returns what the pickers may offer, so the frontend never invents a supported country.
 

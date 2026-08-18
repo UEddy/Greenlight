@@ -96,16 +96,15 @@ export function DemoGallery({ cards, empty }: { cards: Card[]; empty: boolean })
           look better: what failed its guards was never saved.
         </p>
         <p className="mt-2 text-xs leading-relaxed text-[#b8c4d8]">
-          The live path is the same code. The assess form calls the same
-          endpoint, which retrieves the same records, prompts the same model and
-          runs the same guards over its answer. To see it happen for real, start
-          the backend with a key in backend/.env and submit the form at{" "}
+          The live path is the same code. Submitting the form at{" "}
           <a href="/assess" className="underline underline-offset-2">
             /assess
-          </a>
-          . Fixtures are regenerated with{" "}
-          <span className="figure">npx tsx scripts/capture-fixtures.ts</span> in
-          the backend package.
+          </a>{" "}
+          calls a route that imports the same assess function these responses
+          came from, which retrieves the same records, prompts the same model
+          and runs the same guards over its answer. Fixtures are regenerated
+          with <span className="figure">npx tsx scripts/capture-fixtures.ts</span>{" "}
+          in the backend package.
         </p>
       </section>
 
