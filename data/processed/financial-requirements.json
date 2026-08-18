@@ -51,14 +51,22 @@
           "basis": "per_day",
           "amount": 45.0,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "host signs a letter of guarantee authenticated by their municipality",
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": "The declaration covers stay, health care, accommodation and repatriation. Personal funds may still be asked for."
+          "note": "The declaration covers stay, health care, accommodation and repatriation. Personal funds may still be asked for.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Belgian law requires adequate means. The amounts are administrative practice.",
@@ -92,14 +100,22 @@
           "basis": "per_day",
           "amount": 50.0,
           "currency": "EUR",
-          "note": "A second requirement of not less than 50 euros per day, or prepaid hotel nights, or an invitation declaration. It is not added to the subsistence amount here: the state states two requirements and this dataset does not do arithmetic across them."
+          "note": "A second requirement of not less than 50 euros per day, or prepaid hotel nights, or an invitation declaration. It is not added to the subsistence amount here: the state states two requirements and this dataset does not do arithmetic across them.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "transit",
           "basis": "per_trip",
           "amount": 50.0,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Article 17 of the Ordinance on the Terms and Conditions for Issuing Visas and Determining the Visa Regime, Decree No 198 of 11 July 2011, last amended 13 May 2022.",
@@ -133,14 +149,22 @@
           "basis": "per_day",
           "amount": 30.0,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "guarantor assumes all costs of stay and departure",
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": "Exempt from showing means entirely."
+          "note": "Exempt from showing means entirely.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Article 9 of the Regulation on the Visa Regime, Official Gazette of the Republic of Croatia No 92/2021.",
@@ -174,14 +198,22 @@
           "basis": "per_trip",
           "amount": 46950.0,
           "currency": "CZK",
-          "note": "Plus 6,260 CZK for each whole month of the intended stay."
+          "note": "Plus 6,260 CZK for each whole month of the intended stay.",
+          "min_days": 31,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "traveller under 18",
           "basis": "per_day",
           "amount": null,
           "currency": "CZK",
-          "note": "Half the amounts above. The amount is null because the state publishes a rule and not a figure, and halving it here would put a number in this dataset that no government printed."
+          "note": "Half the amounts above. The amount is null because the state publishes a rule and not a figure, and halving it here would put a number in this dataset that no government printed.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Section 13 of Act No 326/1999 Coll. read with Section 5 of Act No 110/2006 Coll. on living and subsistence minimum. The daily figure is 0.5 times the subsistence minimum of 3,130 CZK.",
@@ -300,7 +332,11 @@
           "basis": "per_day",
           "amount": null,
           "currency": "EUR",
-          "note": "The decision reduces the amounts by 50 percent. Recorded as a rule rather than a computed figure."
+          "note": "The decision reduces the amounts by 50 percent. Recorded as a rule rather than a computed figure.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Common Ministerial Decision No 3021/22/10-f of 24 December 2007.",
@@ -367,14 +403,22 @@
           "basis": "per_day",
           "amount": 65.0,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "holds an attestation d'accueil",
           "basis": "per_day",
           "amount": 32.5,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Reference amount tied to the guaranteed minimum wage, SMIC, with the accommodation based amounts applying from 19 June 2014.",
@@ -415,56 +459,88 @@
           "basis": "per_trip",
           "amount": 269.6,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": 1,
+          "max_days": 5,
+          "participants": "one",
+          "applies_to_iso3": null
         },
         {
           "condition": "1 to 5 days, two or more participants, each",
           "basis": "per_trip",
           "amount": 212.81,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": 1,
+          "max_days": 5,
+          "participants": "two_or_more",
+          "applies_to_iso3": null
         },
         {
           "condition": "6 to 10 days, one participant",
           "basis": "per_day",
           "amount": 44.93,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": 6,
+          "max_days": 10,
+          "participants": "one",
+          "applies_to_iso3": null
         },
         {
           "condition": "6 to 10 days, two or more participants, each",
           "basis": "per_day",
           "amount": 26.33,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": 6,
+          "max_days": 10,
+          "participants": "two_or_more",
+          "applies_to_iso3": null
         },
         {
           "condition": "11 to 20 days, one participant",
           "basis": "per_trip",
           "amount": 51.64,
           "currency": "EUR",
-          "note": "Fixed sum of 51.64 euros plus 36.67 euros per day."
+          "note": "Fixed sum of 51.64 euros plus 36.67 euros per day.",
+          "min_days": 11,
+          "max_days": 20,
+          "participants": "one",
+          "applies_to_iso3": null
         },
         {
           "condition": "11 to 20 days, two or more participants, each",
           "basis": "per_trip",
           "amount": 25.82,
           "currency": "EUR",
-          "note": "Fixed sum of 25.82 euros plus 22.21 euros per day."
+          "note": "Fixed sum of 25.82 euros plus 22.21 euros per day.",
+          "min_days": 11,
+          "max_days": 20,
+          "participants": "two_or_more",
+          "applies_to_iso3": null
         },
         {
           "condition": "more than 20 days, one participant",
           "basis": "per_trip",
           "amount": 206.58,
           "currency": "EUR",
-          "note": "Fixed sum of 206.58 euros plus 27.89 euros per day."
+          "note": "Fixed sum of 206.58 euros plus 27.89 euros per day.",
+          "min_days": 21,
+          "max_days": null,
+          "participants": "one",
+          "applies_to_iso3": null
         },
         {
           "condition": "more than 20 days, two or more participants, each",
           "basis": "per_trip",
           "amount": 118.79,
           "currency": "EUR",
-          "note": "Fixed sum of 118.79 euros plus 17.04 euros per day."
+          "note": "Fixed sum of 118.79 euros plus 17.04 euros per day.",
+          "min_days": 21,
+          "max_days": null,
+          "participants": "two_or_more",
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Article 4(3) of Legislative Decree No 286 of 28 July 1998, with the directive of 1 March 2000 defining means of support, Table A.",
@@ -524,14 +600,22 @@
           "basis": "per_trip",
           "amount": 700.0,
           "currency": "EUR",
-          "note": "No less than the minimum monthly wage."
+          "note": "No less than the minimum monthly wage.",
+          "min_days": 31,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "inviting party registered as covering the costs",
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": "No proof of means required from the traveller."
+          "note": "No proof of means required from the traveller.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Law on Immigration, with Cabinet Regulation No 225.",
@@ -565,7 +649,11 @@
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": "The inviting person takes on responsibility for accommodation and financial support for the requested stay."
+          "note": "The inviting person takes on responsibility for accommodation and financial support for the requested stay.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Paragraph 8 of the Order of the Minister of Foreign Affairs No V-227 of 4 July 2023.",
@@ -599,7 +687,11 @@
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Reference amount is the minimum wage for an unskilled worker, quoted in the annex as approximately 67 euros per day as of 1 January 2018.",
@@ -744,21 +836,33 @@
           "basis": "per_trip",
           "amount": 300.0,
           "currency": "PLN",
-          "note": null
+          "note": null,
+          "min_days": 1,
+          "max_days": 4,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "participant in a tourist event, youth camp or sports event, or stay already paid for",
           "basis": "per_day",
           "amount": 20.0,
           "currency": "PLN",
-          "note": "No less than 100 PLN in total."
+          "note": "No less than 100 PLN in total.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "return journey funds, arriving from a non EU country",
           "basis": "per_trip",
           "amount": 2500.0,
           "currency": "PLN",
-          "note": "A separate requirement on top of subsistence. 500 PLN from another EU member state, 200 PLN from a neighbouring country."
+          "note": "A separate requirement on top of subsistence. 500 PLN from another EU member state, 200 PLN from a neighbouring country.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Regulation of the Minister of the Interior of 23 February 2015, Journal of Laws of 2017, item 2122.",
@@ -792,7 +896,11 @@
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": null,
@@ -833,14 +941,30 @@
           "basis": "per_day",
           "amount": 30.0,
           "currency": "EUR",
-          "note": "Made available by the inviting person or company rather than held by the traveller. The list in Order of the Minister of Foreign Affairs No 1743/2010 includes seven of the twelve passports this product covers: Bangladesh, Egypt, India, Indonesia, Morocco, Nigeria and Pakistan."
+          "note": "Made available by the inviting person or company rather than held by the traveller. The list in Order of the Minister of Foreign Affairs No 1743/2010 includes seven of the twelve passports this product covers: Bangladesh, Egypt, India, Indonesia, Morocco, Nigeria and Pakistan. applies_to_iso3 carries only those seven, not the whole order, because the other countries on it are outside this product's coverage.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": [
+            "BGD",
+            "EGY",
+            "IND",
+            "IDN",
+            "MAR",
+            "NGA",
+            "PAK"
+          ]
         },
         {
           "condition": "mission, professional transport or sport related activity",
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": "Possible without showing proof of means of subsistence."
+          "note": "Possible without showing proof of means of subsistence.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Aliens Act No 194/2002.",
@@ -874,7 +998,11 @@
           "basis": "per_day",
           "amount": null,
           "currency": "EUR",
-          "note": "50 percent of the adult amount. Recorded as a rule rather than a computed figure."
+          "note": "50 percent of the adult amount. Recorded as a rule rather than a computed figure.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Article 2 of the Rules implementing the Schengen Borders Code, Official Gazette of the Republic of Slovenia No 29/07.",
@@ -908,7 +1036,11 @@
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Section 1(1) of Implementing Decree No 499/2011 of the Slovak Ministry of the Interior.",
@@ -994,7 +1126,11 @@
           "basis": "per_day",
           "amount": null,
           "currency": "ISK",
-          "note": "The state says the amount is halved. Recorded as a rule rather than a computed figure."
+          "note": "The state says the amount is halved. Recorded as a rule rather than a computed figure.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Icelandic law requires means for the stay and the return journey.",
@@ -1054,14 +1190,22 @@
           "basis": "per_day",
           "amount": 30.0,
           "currency": "CHF",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "staying with a private individual who signs a declaration of liability",
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": "The declaration is an acknowledgement of an irrecoverable debt set at 30,000 CHF, covering subsistence, accident and sickness costs and the cost of return."
+          "note": "The declaration is an acknowledgement of an irrecoverable debt set at 30,000 CHF, covering subsistence, accident and sickness costs and the cost of return.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "Swiss Aliens Act of 16 December 2005, RS 142.20, which requires necessary financial resources without specifying details. The amounts are administrative practice.",
@@ -1095,14 +1239,22 @@
           "basis": "per_day",
           "amount": 30.0,
           "currency": "CHF",
-          "note": null
+          "note": null,
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         },
         {
           "condition": "living at a private residence with a signed Verpflichtungserklaerung",
           "basis": "none",
           "amount": null,
           "currency": "EUR",
-          "note": "The host's formal undertaking carries an irrevocable liability of 30,000 CHF."
+          "note": "The host's formal undertaking carries an irrevocable liability of 30,000 CHF.",
+          "min_days": null,
+          "max_days": null,
+          "participants": null,
+          "applies_to_iso3": null
         }
       ],
       "legal_basis": "National practice as notified to the Commission.",

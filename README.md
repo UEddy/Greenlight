@@ -214,6 +214,34 @@ Most figures rest on the Commission annex, which is the states' own notified amo
 
 `data/manifest.json` records the direct download URL, landing page URL, format, retrieval date, byte size and checksum for every source. The UK download path contains a hashed segment that changes on republish, which is why the landing page URL is recorded alongside it.
 
+## Backend
+
+```bash
+cd backend
+npm install
+npm test          # 65 tests, offline, no API key needed
+npm run typecheck
+npm run dev       # POST /assess on :8787
+```
+
+`POST /assess` takes a traveller profile and returns the verdict card. `GET /coverage` returns what the pickers may offer, so the frontend never invents a supported country.
+
+**Every number is retrieved in code. The model never produces one.** Retrieval runs first and reads only the curated JSON in `data/processed/`. The model is then given those records and asked for four things: a verdict, a confidence, one plain line reading the profile against the base rate, and the reasons and checklist. It returns no numeric field at all, and the response is assembled from the retrieved records. The model's contribution is judgement and prose.
+
+That is enforced rather than requested. The context block the model reads is rendered once, and the set of figures it is allowed to echo is extracted from those exact bytes, so the allowlist cannot drift from what the model saw. Any digit in the response that is not in the retrieved context fails the response. It is re-asked once with the offending text quoted back, and refused after that. A refused answer returns HTTP 502 **with the retrieved records attached and no verdict**, because the facts are still sourced and still true; it is only the judgement that failed its checks.
+
+**Never recommend applying somewhere else.** A Schengen application belongs to the state of the main destination. Suggesting a different state, consulate or city because a rate or a threshold looks lower there is advice that gets people refused, and it shades into misrepresentation, which carries multi year bans. The prohibition is rule 4 of the system prompt and it is checked again on the way out: the guard rejects comparative phrasing about rates or requirements, and rejects naming any other jurisdiction in a sentence that also contains a routing verb. Naming another state as a plain fact is fine, because the variation is real and the interface may show it. Turning it into a route is not. Tests cover the direct suggestion, the soft hint, the version framed as a lower financial requirement, and the version framed as a lower refusal rate.
+
+**The axes stay apart.** `refusalRate` is an object with a `nationality` field and an `applicationLocation` field, never a single number. UK and US records are nationality. Schengen records are application location, and that file has no nationality column at all, so a Schengen request returns `nationality: null` and says why in `coverageNotes`. Each figure carries what it counts and `comparableWithOtherAxis: false`.
+
+**The UK and US financial line is qualitative.** Neither publishes an amount, so neither gets a threshold, an estimated total, or a per day figure. They get a statement of the official position, assembled from the dataset with the source attached: funds must be adequate for the specific trip, judged case by case against the itinerary, the applicant's own means and their ties.
+
+**Romania and Italy are surfaced, not flattened.** Romania routes seven of the twelve covered passports through an inviting party at a different daily amount; the applicable variant is selected on the nationality list and shown. Italy publishes a grid keyed on trip length and party size, so no single trip total is computed for it at all, and the row that matches the trip is surfaced instead. Selection uses the machine readable bounds in the dataset, never a regex over the English.
+
+Coverage gaps return HTTP 422 with the gap, never an estimate. That includes an expired or absent passport, where the honest next step is a renewal timeline rather than a verdict on odds.
+
+Two notes on the model call. The spec asked for a low temperature, which was the right instinct, but sampling parameters are rejected on Claude Opus 5, so determinism comes from a schema constrained response and pinned effort instead; the guards are what actually hold the line, and they would be needed at any temperature. And the live model path has not been run against the API in this repo yet, because no credential was available when it was written. `test/live-model.test.ts` runs it against a profile built to bait the prohibited suggestion, and skips itself unless `ANTHROPIC_API_KEY` is set.
+
 ## Repo layout
 
 ```
@@ -229,4 +257,10 @@ docs/               build spec
 scripts/            dataset fetch and build
   sources.py                 source registry and methodology strings
   financial_requirements.py  curated financial records, transcribed by hand
+backend/            Node, TypeScript
+  src/retrieval.ts           deterministic lookup, every number originates here
+  src/prompt.ts              system prompt and the context block the model reads
+  src/guard.ts               figure allowlist and prohibited advice checks
+  src/assess.ts              retrieve, ask, guard, assemble
+  src/server.ts              POST /assess, GET /coverage
 ```

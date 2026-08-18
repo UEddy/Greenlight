@@ -108,14 +108,38 @@ def schengen(
     }
 
 
-def variant(condition, basis, amount=None, currency="EUR", note=None):
-    """Another amount the same state publishes for a different situation."""
+def variant(
+    condition,
+    basis,
+    amount=None,
+    currency="EUR",
+    note=None,
+    min_days=None,
+    max_days=None,
+    participants=None,
+    applies_to_iso3=None,
+):
+    """Another amount the same state publishes for a different situation.
+
+    min_days, max_days, participants and applies_to_iso3 exist so a caller can
+    select the right variant without parsing the English in condition. Italy
+    keys its grid on trip length and party size, Poland changes rule at 4 days,
+    and Romania routes some nationalities through an inviting party. A backend
+    that had to regex "1 to 5 days" out of prose would eventually pick the
+    wrong row silently, which is the failure this product cannot afford. The
+    fields restate what condition already says, they never add a requirement
+    the source does not state.
+    """
     return {
         "condition": condition,
         "basis": basis,
         "amount": amount,
         "currency": currency,
         "note": note,
+        "min_days": min_days,
+        "max_days": max_days,
+        "participants": participants,
+        "applies_to_iso3": applies_to_iso3,
     }
 
 
@@ -294,6 +318,7 @@ SCHENGEN_RECORDS = [
                 "stays exceeding 30 days",
                 "per_trip", 46950.0, currency="CZK",
                 note="Plus 6,260 CZK for each whole month of the intended stay.",
+                min_days=31,
             ),
             variant(
                 "traveller under 18",
@@ -408,25 +433,41 @@ SCHENGEN_RECORDS = [
         currency="EUR",
         applies_to="tourism, one participant, amount depends on the length of the trip",
         variants=[
-            variant("1 to 5 days, one participant", "per_trip", 269.60),
-            variant("1 to 5 days, two or more participants, each", "per_trip", 212.81),
-            variant("6 to 10 days, one participant", "per_day", 44.93),
-            variant("6 to 10 days, two or more participants, each", "per_day", 26.33),
+            variant(
+                "1 to 5 days, one participant", "per_trip", 269.60,
+                min_days=1, max_days=5, participants="one",
+            ),
+            variant(
+                "1 to 5 days, two or more participants, each", "per_trip", 212.81,
+                min_days=1, max_days=5, participants="two_or_more",
+            ),
+            variant(
+                "6 to 10 days, one participant", "per_day", 44.93,
+                min_days=6, max_days=10, participants="one",
+            ),
+            variant(
+                "6 to 10 days, two or more participants, each", "per_day", 26.33,
+                min_days=6, max_days=10, participants="two_or_more",
+            ),
             variant(
                 "11 to 20 days, one participant", "per_trip", 51.64,
                 note="Fixed sum of 51.64 euros plus 36.67 euros per day.",
+                min_days=11, max_days=20, participants="one",
             ),
             variant(
                 "11 to 20 days, two or more participants, each", "per_trip", 25.82,
                 note="Fixed sum of 25.82 euros plus 22.21 euros per day.",
+                min_days=11, max_days=20, participants="two_or_more",
             ),
             variant(
                 "more than 20 days, one participant", "per_trip", 206.58,
                 note="Fixed sum of 206.58 euros plus 27.89 euros per day.",
+                min_days=21, max_days=None, participants="one",
             ),
             variant(
                 "more than 20 days, two or more participants, each", "per_trip", 118.79,
                 note="Fixed sum of 118.79 euros plus 17.04 euros per day.",
+                min_days=21, max_days=None, participants="two_or_more",
             ),
         ],
         legal_basis=(
@@ -464,6 +505,7 @@ SCHENGEN_RECORDS = [
             variant(
                 "stays exceeding 30 days", "per_trip", 700.0,
                 note="No less than the minimum monthly wage.",
+                min_days=31,
             ),
             variant(
                 "inviting party registered as covering the costs",
@@ -563,7 +605,10 @@ SCHENGEN_RECORDS = [
         currency="PLN", per_day=75.0,
         applies_to="stays longer than 4 days",
         variants=[
-            variant("stays of 4 days or less", "per_trip", 300.0, currency="PLN"),
+            variant(
+                "stays of 4 days or less", "per_trip", 300.0, currency="PLN",
+                min_days=1, max_days=4,
+            ),
             variant(
                 "participant in a tourist event, youth camp or sports event, or "
                 "stay already paid for",
@@ -618,8 +663,12 @@ SCHENGEN_RECORDS = [
                     "than held by the traveller. The list in Order of the "
                     "Minister of Foreign Affairs No 1743/2010 includes seven of "
                     "the twelve passports this product covers: Bangladesh, "
-                    "Egypt, India, Indonesia, Morocco, Nigeria and Pakistan."
+                    "Egypt, India, Indonesia, Morocco, Nigeria and Pakistan. "
+                    "applies_to_iso3 carries only those seven, not the whole "
+                    "order, because the other countries on it are outside this "
+                    "product's coverage."
                 ),
+                applies_to_iso3=["BGD", "EGY", "IND", "IDN", "MAR", "NGA", "PAK"],
             ),
             variant(
                 "mission, professional transport or sport related activity",
