@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/*
+  The palette from section 8 of the build spec.
+
+  The three verdict colours are a literal traffic light and appear nowhere in
+  this stylesheet except on a verdict stamp. Their scarcity is what gives the
+  verdict weight, so there is no button, link, border or focus ring using them.
+*/
+@theme {
+  --color-ink: #0e1626;
+  --color-guilloche: #2a3b57;
+  --color-vellum: #e8e4d9;
+
+  --color-stamp: #b5322c;
+  --color-caution: #c98a1e;
+  --color-clearance: #1f6f5c;
+
+  /* Working tints derived from the ground, for borders and muted text. */
+  --color-ink-raised: #16213a;
+  --color-ink-line: #223050;
+  --color-vellum-line: #cfc8b6;
+  --color-vellum-muted: #6b6455;
+
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+html {
+  background-color: var(--color-ink);
+}
+
+body {
+  background-color: var(--color-ink);
+  color: #dfe4ee;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The quality floor: focus is always visible, and never only a colour change. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #9db4d8;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/*
+  The one orchestrated moment. The stamp lands: in from slightly large, a few
+  degrees of rotation, a short settle. Everything else in the interface holds
+  still.
+*/
+@keyframes stamp-land {
+  0% {
+    opacity: 0;
+    transform: scale(1.6) rotate(-14deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-3.5deg);
+  }
+  75% {
+    transform: scale(1.03) rotate(-5.6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-5deg);
+  }
+}
+
+.stamp-lands {
+  animation: stamp-land 620ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+/*
+  Reduced motion renders the stamped state directly. Not a shorter animation,
+  no animation: the end state is the truth and it is shown immediately.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .stamp-lands {
+    animation: none;
+    opacity: 1;
+    transform: rotate(-5deg);
+  }
+}
+
+/* Numbers are evidence. Every figure on a card is set in mono. */
+.figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
