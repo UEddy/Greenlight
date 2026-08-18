@@ -17,7 +17,7 @@ import type { MrzInput } from "@/lib/mrz";
  * verdict colours still confined to the stamp.
  */
 
-const REPO_URL = "https://github.com/eddyhamezz/greenlight";
+const REPO_URL = "https://github.com/UEddy/Greenlight";
 const ESCROW_ADDRESS = "0x39311e81cB108C937D2DA307a1a2d494A66eD553";
 const ESCROW_EXPLORER = `https://www.okx.com/web3/explorer/xlayer-test/address/${ESCROW_ADDRESS}`;
 
