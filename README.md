@@ -265,25 +265,32 @@ If the backend is ever missing or unresolvable, the build fails rather than the 
 
 ### Native binaries and the lockfile
 
-The lockfile is committed and it is generated on Windows, which npm handles badly for packages that ship a compiled binary per platform. npm records only the binary matching the machine that ran the install, so a Linux build gets a tree with no binary to load and fails at the first CSS file with `Cannot find module '../lightningcss.linux-x64-gnu'`.
+The lockfile is committed and generated on Windows, which npm handles badly for packages shipping a compiled binary per platform. npm records only the binary matching the machine that ran the install, so a Linux build gets a tree with nothing to load.
 
-Three packages on the deploy path have this shape: `lightningcss` and `@tailwindcss/oxide`, both pulled in by Tailwind, and `@next/swc`. The Linux builds are declared as `optionalDependencies` of the frontend, pinned to the exact version of their parent, because a native binary and its JavaScript package have to be the same version:
+The failure surfaces one package at a time, at whichever build stage first touches it: `lightningcss` at the first CSS file, then `@tailwindcss/oxide`, then `@typescript/typescript-linux-x64` at the type check. Found by deploying, that is one red deploy each. So they are enumerated from the lockfile instead. `npm run check:binaries` walks the frontend's dependency closure, including devDependencies because the build type checks and runs Tailwind, and reports every optional dependency constrained to linux x64 that has no entry in the tree. It runs as a `prebuild` hook, so a missing binary fails the build locally, with a list, rather than on Vercel one at a time.
+
+The six the frontend needs are declared as `optionalDependencies`, pinned to the version the frontend's own copy of each parent asks for, because a native binary and its JavaScript package have to match:
 
 ```json
 "optionalDependencies": {
+  "@img/sharp-libvips-linux-x64": "1.3.2",
+  "@img/sharp-linux-x64": "0.35.3",
   "@next/swc-linux-x64-gnu": "16.3.1",
   "@tailwindcss/oxide-linux-x64-gnu": "4.3.3",
+  "@typescript/typescript-linux-x64": "7.0.2",
   "lightningcss-linux-x64-gnu": "1.32.0"
 }
 ```
 
-Declaring them puts real entries in the lockfile tree, with a resolved URL and an integrity hash, marked `os: ["linux"]` and optional. A Windows install skips downloading them and a Linux install fetches them. Nothing is disabled and Tailwind still runs its normal engine.
+The pinning rule matters in a workspace, because the same package can resolve at different versions in different places. `lightningcss` is 1.32.0 under the frontend and 1.33.0 under the backend, and the declared binary is 1.32.0 because it is the frontend that gets deployed. The checker reports the version from the parent as it resolves from `frontend`, so following its output cannot pick the wrong copy.
 
-The alternative, regenerating the lockfile under a platform override with `npm install --os=linux`, was rejected: it rebuilds the tree *for* Linux and drops the Windows entries, so the next install on a Windows machine puts them back and removes the Linux ones. That ping pong would break a build every time the lockfile was touched from the other platform. Declaring the dependencies is stable in both directions.
+Declaring them puts real entries in the lockfile tree, each with a resolved URL, an integrity hash and `os: ["linux"]`, `cpu: ["x64"]`. A Windows install skips downloading them and a Linux install fetches them. Nothing is disabled and Tailwind still runs its normal engine.
 
-**When upgrading Tailwind or Next, bump these pins in the same commit.** They are exact versions and they will silently drift otherwise. A mismatch does not fail on Windows, where these are never loaded, so it will show up as a failed deploy rather than a failed local build.
+The alternative, regenerating the lockfile under `npm install --os=linux`, was rejected: it rebuilds the tree *for* Linux and drops the Windows entries, so the next install from a Windows machine puts those back and removes the Linux ones. That ping pong breaks a build every time the lockfile is touched from the other platform. Declaring the dependencies is stable in both directions.
 
-**Residual risk.** This covers linux x64 with glibc, which is what Vercel builds on. An arm64 builder or a musl based image would need its own entries, one line each in the same place. `@rolldown/binding-linux-x64-gnu`, used by vitest in the backend, has the same gap and is deliberately not fixed here, because the backend is not deployed; it would matter only if `npm test` were run on Linux CI.
+**When upgrading anything, run `npm run check:binaries`.** The pins are exact and will drift on a Tailwind, Next, TypeScript or sharp upgrade. Because these binaries are never loaded on Windows, a drift does not fail locally, so without the check it would show up as a failed deploy.
+
+**Residual risk.** This covers linux x64 with glibc, which is what Vercel builds on. An arm64 or musl builder would need its own variants, and the checker deliberately ignores them rather than pretending to cover a platform nobody here builds on. `@rolldown/binding-linux-x64-gnu`, pulled in by vitest in the backend, has the same gap and is left alone because the backend is not deployed; it would matter only if `npm test` ran on Linux CI.
 
 ### The monorepo path problem, and how it is solved
 
