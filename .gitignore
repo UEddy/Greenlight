@@ -6,3 +6,10 @@ node_modules/
 backend/dist/
 frontend/.next/
 frontend/out/
+
+# Workspace installs resolve from the single lockfile at the repo root.
+# A nested one makes its directory look like its own install root, which is
+# how the deployed build ends up without the workspace link.
+frontend/package-lock.json
+backend/package-lock.json
+*.tsbuildinfo

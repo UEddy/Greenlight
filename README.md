@@ -237,11 +237,19 @@ The frontend and the backend ship as a single Vercel project. `frontend/src/app/
 | --- | --- |
 | Framework preset | Next.js |
 | Root directory | `frontend` |
-| Include files outside the root directory | on, this is a workspace and the backend sits beside it |
-| Build command | leave as the default, `next build` |
-| Install command | leave as the default, npm installs the workspace root |
+| Build command | leave blank, `frontend/vercel.json` sets it |
+| Install command | leave blank, `frontend/vercel.json` sets it |
 | Output directory | leave as the default |
 | Node version | 22 or later |
+
+`frontend/vercel.json` pins the install and build commands in the repo rather than leaving them to dashboard detection, so a deploy cannot start behaving differently because a placeholder changed. The install runs at the workspace root, which is the only place the lockfile lives.
+
+Two things had to be true for `greenlight-backend` to resolve in a deployed build, and neither was:
+
+- **`frontend/package.json` has to declare `greenlight-backend`.** It imports it, so it depends on it. Without the declaration the package still turned up in the root `node_modules`, because it is a workspace member, and resolution from `frontend` found it by walking up. That is a hoisting accident rather than a dependency, and it does not survive an install layout where `frontend` is treated as its own root.
+- **There must be exactly one lockfile, at the workspace root.** `frontend/package-lock.json` and `backend/package-lock.json` were still committed from before the workspace conversion. A lockfile inside the root directory makes that directory look like its own install root, which produces a `node_modules` holding only that package's own declared dependencies. Both are deleted and gitignored.
+
+If the backend is ever missing or unresolvable, the build fails rather than the request: the API route and the statically prerendered landing page both import from the package at compile time, so a broken link is a `Module not found` at build.
 
 **Environment variables**
 

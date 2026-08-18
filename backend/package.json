@@ -36,6 +36,7 @@
     "./provider": "./src/provider.ts",
     "./types": "./src/types.ts",
     "./retrieval": "./src/retrieval.ts",
-    "./model": "./src/model.ts"
+    "./model": "./src/model.ts",
+    "./package.json": "./package.json"
   }
 }

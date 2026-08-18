@@ -25,6 +25,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "greenlight-backend": "*",
     "@tanstack/react-query": "^5.101.4",
     "next": "^16.3.1",
     "react": "^19.2.8",
