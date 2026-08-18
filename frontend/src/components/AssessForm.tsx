@@ -421,6 +421,20 @@ export function AssessForm() {
             </fieldset>
           </section>
 
+          <section className="border-l-2 border-[#41557c] bg-[var(--color-ink-raised)] p-4">
+            <p className="text-xs leading-relaxed text-[#b8c4d8]">
+              Submitting makes a real model call. The figures come from the
+              published datasets in this repo either way, and the model writes
+              only the verdict and the wording, with no numbers of its own. If
+              you are just looking at how the card renders, the saved responses
+              at{" "}
+              <Link href="/demo" className="underline underline-offset-2">
+                /demo
+              </Link>{" "}
+              show the same thing without spending a request.
+            </p>
+          </section>
+
           <div className="flex flex-wrap items-center gap-3">
             <button type="submit" className={PRIMARY} disabled={!ready || pending}>
               {pending ? "Reading the data" : "Get the verdict"}

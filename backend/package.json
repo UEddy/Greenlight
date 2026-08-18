@@ -7,11 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run --exclude '**/live-model.test.ts' --exclude '**/node_modules/**'",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "dev": "tsx watch src/server.ts",
-    "start": "node dist/src/server.js"
+    "start": "node dist/src/server.js",
+    "test:live": "vitest run test/live-model.test.ts"
   },
   "keywords": [],
   "author": "",

@@ -20,7 +20,17 @@ import { retrieve } from "../src/retrieval.js";
 import { COVERED_SCHENGEN_STATES } from "../src/dataset.js";
 import { ProfileSchema } from "../src/types.js";
 
-const provider = detectProvider();
+/**
+ * Opt in explicitly, with GREENLIGHT_LIVE=1.
+ *
+ * These used to run whenever a key happened to be present, which was a quota
+ * trap: once backend/.env existed, a plain `npm test` spent real free tier
+ * requests without anyone asking for it. The free tier allows twenty generate
+ * requests per day per project per model, so an accidental suite run can cost
+ * a recording session. Presence of a key is not consent to spend it.
+ */
+const wantsLive = process.env["GREENLIGHT_LIVE"] === "1";
+const provider = wantsLive ? detectProvider() : null;
 const hasCredential = provider !== null;
 if (hasCredential) {
   // eslint-disable-next-line no-console
@@ -106,7 +116,7 @@ describe.skipIf(!hasCredential)("live model", () => {
 });
 
 describe.skipIf(hasCredential)("live model", () => {
-  it("is skipped without a credential", () => {
+  it("does not run unless GREENLIGHT_LIVE is set", () => {
     expect(hasCredential).toBe(false);
   });
 });

@@ -219,7 +219,7 @@ Most figures rest on the Commission annex, which is the states' own notified amo
 ```bash
 cd backend
 npm install
-npm test          # 110 tests, offline, no API key needed
+npm test          # 116 tests, offline, never calls the model API
 npm run typecheck
 npm run dev       # POST /assess on :8787
 ```
@@ -266,11 +266,29 @@ The free tier also returns 503 under load. `GeminiModelClient` retries 429 and 5
 
 One difference in the spec's favour: Gemini accepts a sampling temperature, so the build spec's request for a low one is honoured literally at zero. Claude Opus 5 rejects sampling parameters with a 400, so on that provider determinism comes from the schema constrained response and pinned effort instead.
 
-### Fixtures
+### Fixtures, and what is replayed rather than live
 
-`test/fixtures/` holds five real responses captured from live Gemini calls, unedited. The demo can replay them with no network and no key. `test/fixtures.test.ts` re-runs every guard over them, which proves both that the replay is safe and that what a real provider returned is genuinely compliant rather than compliant looking. A response that failed its guards was never saved, so nothing in that directory was corrected into passing.
+`test/fixtures/` holds five real responses captured from live Gemini calls, unedited. `test/fixtures.test.ts` re-runs every guard over them, which proves both that the replay is safe and that what a real provider returned is genuinely compliant rather than compliant looking. A response that failed its guards was never saved, so nothing in that directory was corrected into passing.
 
-`test/live-model.test.ts` still runs against whichever provider is configured and skips when no key is present.
+**The demo gallery at `/demo` replays those saved responses and makes no API call at all.** It is a server component reading files from disk, so browsing it costs nothing, cannot be rate limited, and works with no key configured. The page says so on itself rather than only here, because a gallery of well formed cards is exactly the kind of thing that quietly reads as live output.
+
+**The live path is the same code.** Submitting the form at `/assess` calls `POST /assess`, which retrieves the same records, prompts the same model and runs the same guards over the answer. The only difference between a fixture and a live response is when it was produced. To run it live:
+
+```bash
+echo "GEMINI_API_KEY=..." > backend/.env
+cd backend && npm run dev          # POST /assess on :8787
+cd frontend && npm run dev         # submit the form at /assess
+```
+
+Regenerate the fixtures with `npx tsx scripts/capture-fixtures.ts` in the backend package. That spends one request per profile.
+
+### The free tier budget
+
+Google AI Studio's free tier allows **twenty generate requests per day, per project, per model**. That is small enough that an accidental test run can cost a recording session, so two things protect it.
+
+`npm test` excludes the live tests entirely and runs 116 offline. The live suite is opt in through `GREENLIGHT_LIVE=1 npm run test:live`, gated on an explicit flag rather than on whether a key happens to be present. It used to be the latter, which turned `backend/.env` existing into a quota trap: presence of a key is not consent to spend it.
+
+`GEMINI_API_KEY_BACKUP` is a fallback for a rate limit arriving at the worst moment. A 429 fails over to it immediately rather than backing off, because the quota is counted per project per day, so waiting on an exhausted key changes nothing and only another project's key helps. A 503 is different: that is the free tier being busy rather than exhausted, so it backs off on the same key and does not burn the backup. Identical values in both variables are collapsed to one key, so a copy paste mistake cannot look like a working fallback while changing nothing.
 
 ## Repo layout
 
